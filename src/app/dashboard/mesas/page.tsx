@@ -1,0 +1,955 @@
+"use client";
+
+import { useState, useEffect } from "react";
+import { 
+  CircleDot, Play, Square, Timer, PlusCircle, AlertCircle, 
+  HelpCircle, RefreshCw, Layers, Banknote, User, Clock, Check,
+  X, Plus, Minus, ShoppingCart, Tag, Coffee, Settings, Edit2, 
+  Archive, Power
+} from "lucide-react";
+import { createClient } from "@/utils/supabase/client";
+
+interface Mesa {
+  id_mesa: string;
+  numero: number;
+  nombre: string | null;
+  tipo: 'pool' | 'snooker' | 'americana' | 'carambola';
+  activo: boolean;
+  id_sucursal?: string;
+}
+
+interface Tarifa {
+  id_tarifa: string;
+  nombre: string;
+  precio_hora: number;
+  tipo_dia: string;
+}
+
+interface SesionMesa {
+  id_sesion: string;
+  id_mesa: string;
+  id_tarifa: string;
+  id_usuario: string;
+  inicio: string;
+  estado: 'abierta' | 'cerrada' | 'cancelada';
+  modalidad: 'abierto' | 'fijo' | 'partida';
+  tiempo_fijo_minutos: number;
+  costo_partida: number;
+  tarifas?: Tarifa;
+}
+
+interface Producto {
+  id_producto: string;
+  id_categoria: string;
+  nombre: string;
+  precio_venta: number;
+  imagen_url?: string;
+}
+
+interface Categoria {
+  id_categoria: string;
+  nombre: string;
+}
+
+interface VentaItem {
+  id_item: string;
+  id_producto: string;
+  producto?: Producto;
+  cantidad: number;
+  precio_unitario: number;
+  subtotal: number;
+}
+
+interface VentaPendiente {
+  id_venta: string;
+  items: VentaItem[];
+}
+
+export default function MesasPage() {
+  const [loading, setLoading] = useState(true);
+  const [dbStateError, setDbStateError] = useState("");
+  
+  const [mesas, setMesas] = useState<Mesa[]>([]);
+  const [todasMesas, setTodasMesas] = useState<Mesa[]>([]); // Para el CRUD
+  const [tarifas, setTarifas] = useState<Tarifa[]>([]);
+  const [globalConfig, setGlobalConfig] = useState<any>(null);
+  const [sesionesActivas, setSesionesActivas] = useState<Record<string, SesionMesa>>({});
+  
+  const [productos, setProductos] = useState<Producto[]>([]);
+  const [categorias, setCategorias] = useState<Categoria[]>([]);
+  
+  const [currentUser, setCurrentUser] = useState<any>(null);
+  const [activeSucursalId, setActiveSucursalId] = useState<string>("");
+
+  // CRUD Mesas
+  const [isManagingMesas, setIsManagingMesas] = useState(false);
+  const [isEditingMesa, setIsEditingMesa] = useState(false);
+  const [mesaFormData, setMesaFormData] = useState<Partial<Mesa>>({ numero: 1, nombre: "", tipo: 'pool' });
+
+  // Modal Abrir Sesión
+  const [isOpeningSession, setIsOpeningSession] = useState(false);
+  const [selectedMesa, setSelectedMesa] = useState<Mesa | null>(null);
+  const [selectedTarifaId, setSelectedTarifaId] = useState("");
+  
+  // Modalidades de Juego
+  const [modalidad, setModalidad] = useState<'abierto'|'fijo'|'partida'>('abierto');
+  const [tiempoFijoMinutos, setTiempoFijoMinutos] = useState<number>(60);
+  const [costoPartida, setCostoPartida] = useState<number>(5.00);
+
+  // POS / Cuenta
+  const [isPosOpen, setIsPosOpen] = useState(false);
+  const [posMesa, setPosMesa] = useState<Mesa | null>(null);
+  const [posSesion, setPosSesion] = useState<SesionMesa | null>(null);
+  const [posVenta, setPosVenta] = useState<VentaPendiente | null>(null);
+  const [activeCategory, setActiveCategory] = useState<string>('all');
+  
+  const [isClosingSession, setIsClosingSession] = useState(false);
+  const [metodoPago, setMetodoPago] = useState<'efectivo' | 'tarjeta' | 'qr'>('efectivo');
+
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const supabase = createClient();
+
+  useEffect(() => {
+    const timer = setInterval(() => setCurrentTime(new Date()), 1000);
+    return () => clearInterval(timer);
+  }, []);
+
+  useEffect(() => { loadData(); }, []);
+
+  const loadData = async () => {
+    setLoading(true);
+    setDbStateError("");
+    try {
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error("No hay usuario autenticado.");
+      
+      const { data: dbUser } = await supabase
+        .from("usuarios")
+        .select("id_usuario, nombre, roles(nombre, nivel)")
+        .eq("auth_id", user.id)
+        .single();
+      
+      setCurrentUser(dbUser);
+
+      const { data: sucursales } = await supabase.from("sucursales").select("id_sucursal");
+      const sucursalId = sucursales?.[0]?.id_sucursal || "";
+      setActiveSucursalId(sucursalId);
+
+      // Mesas (Todas para CRUD)
+      const { data: mesasAll } = await supabase.from("mesas").select("*").order("numero");
+      setTodasMesas(mesasAll || []);
+      
+      // Mesas (Activas para Grid)
+      setMesas((mesasAll || []).filter(m => m.activo));
+
+      // Tarifas y Configuración
+      const { data: tarifasData } = await supabase.from("tarifas").select("*").eq("activo", true);
+      setTarifas(tarifasData || []);
+      if (tarifasData && tarifasData.length > 0) setSelectedTarifaId(tarifasData[0].id_tarifa);
+
+      const { data: confData } = await supabase.from("configuracion").select("*").limit(1).maybeSingle();
+      setGlobalConfig(confData);
+
+      // Sesiones Activas
+      const { data: sesionesData } = await supabase
+        .from("sesiones_mesa")
+        .select(`id_sesion, id_mesa, id_tarifa, id_usuario, inicio, estado, modalidad, tiempo_fijo_minutos, costo_partida`)
+        .eq("estado", "abierta");
+
+      const activeRecord: Record<string, SesionMesa> = {};
+      if (sesionesData) {
+        sesionesData.forEach((sesion: any) => { activeRecord[sesion.id_mesa] = sesion; });
+      }
+      setSesionesActivas(activeRecord);
+
+      // Productos
+      const { data: catData } = await supabase.from("categorias").select("*");
+      if (catData) setCategorias(catData);
+      const { data: prodData } = await supabase.from("productos").select("*").eq("activo", true);
+      if (prodData) setProductos(prodData);
+
+    } catch (err: any) {
+      setDbStateError(err.message || "Error al conectar con la base de datos.");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // ----- CRUD de Mesas -----
+  const handleSaveMesa = async () => {
+    if (!activeSucursalId) return;
+    try {
+      const payload = {
+        id_sucursal: activeSucursalId,
+        numero: mesaFormData.numero,
+        nombre: mesaFormData.nombre || `Mesa ${mesaFormData.numero}`,
+        tipo: mesaFormData.tipo || 'pool',
+        activo: mesaFormData.activo !== undefined ? mesaFormData.activo : true
+      };
+
+      if (mesaFormData.id_mesa) {
+        // Actualizar
+        await supabase.from("mesas").update(payload).eq("id_mesa", mesaFormData.id_mesa);
+      } else {
+        // Crear
+        await supabase.from("mesas").insert(payload);
+      }
+      
+      setMesaFormData({ numero: 1, nombre: "", tipo: 'pool' });
+      setIsEditingMesa(false);
+      await loadData();
+    } catch (err: any) {
+      alert("Error guardando mesa: " + err.message);
+    }
+  };
+
+  const handleToggleEstadoMesa = async (mesa: Mesa) => {
+    try {
+      await supabase.from("mesas").update({ activo: !mesa.activo }).eq("id_mesa", mesa.id_mesa);
+      await loadData();
+    } catch (err: any) {
+      alert("Error cambiando estado: " + err.message);
+    }
+  };
+
+  // ----- Apertura de Sesión -----
+  const handleOpenSessionClick = (mesa: Mesa) => {
+    setSelectedMesa(mesa);
+    setModalidad('abierto');
+    setTiempoFijoMinutos(60);
+    setCostoPartida(5.00);
+    setIsOpeningSession(true);
+  };
+
+  const handleConfirmStart = async () => {
+    if (!selectedMesa || !selectedTarifaId || !currentUser || !activeSucursalId) return;
+
+    try {
+      const { data, error } = await supabase
+        .from("sesiones_mesa")
+        .insert({
+          id_mesa: selectedMesa.id_mesa,
+          id_tarifa: selectedTarifaId,
+          id_usuario: currentUser.id_usuario,
+          id_sucursal: activeSucursalId,
+          inicio: new Date().toISOString(),
+          estado: "abierta",
+          modalidad: modalidad,
+          tiempo_fijo_minutos: tiempoFijoMinutos,
+          costo_partida: costoPartida
+        })
+        .select()
+        .single();
+
+      if (error) {
+        if (error.message.includes("column \"modalidad\" of relation")) {
+          throw new Error("Falta ejecutar el script SQL para actualizar la tabla sesiones_mesa con las nuevas modalidades.");
+        }
+        throw error;
+      }
+
+      setSesionesActivas(prev => ({ ...prev, [selectedMesa.id_mesa]: data }));
+      setIsOpeningSession(false);
+      setSelectedMesa(null);
+    } catch (err: any) {
+      alert("Error al iniciar sesión: " + err.message);
+    }
+  };
+
+  // ----- Lógica del Punto de Venta (POS) -----
+  const openPos = async (mesa: Mesa, sesion: SesionMesa) => {
+    setPosMesa(mesa);
+    setPosSesion(sesion);
+    setIsPosOpen(true);
+    setPosVenta(null);
+
+    const { data: ventaData } = await supabase
+      .from("ventas")
+      .select("id_venta, estado")
+      .eq("id_sesion", sesion.id_sesion)
+      .eq("estado", "pendiente")
+      .maybeSingle(); 
+
+    if (ventaData) {
+      const { data: itemsData } = await supabase
+        .from("venta_items")
+        .select("*, producto:productos(*)")
+        .eq("id_venta", ventaData.id_venta);
+
+      setPosVenta({ id_venta: ventaData.id_venta, items: itemsData || [] });
+    }
+  };
+
+  const handleAddProduct = async (prod: Producto) => {
+    if (!posMesa || !posSesion || !currentUser || !activeSucursalId) return;
+
+    let currentVentaId = posVenta?.id_venta;
+
+    if (!currentVentaId) {
+      const { data: newVenta, error: createError } = await supabase
+        .from("ventas")
+        .insert({
+          id_sucursal: activeSucursalId,
+          id_sesion: posSesion.id_sesion,
+          id_usuario: currentUser.id_usuario,
+          estado: "pendiente",
+          subtotal: 0,
+          total: 0
+        })
+        .select()
+        .single();
+      
+      if (createError) { alert("Error al crear cuenta: " + createError.message); return; }
+      currentVentaId = newVenta!.id_venta;
+      setPosVenta({ id_venta: currentVentaId as string, items: [] });
+    }
+
+    const existingItem = posVenta?.items?.find(i => i.id_producto === prod.id_producto);
+
+    if (existingItem) {
+      const newCant = existingItem.cantidad + 1;
+      const newSubtotal = newCant * existingItem.precio_unitario;
+
+      const { data: updatedItem } = await supabase
+        .from("venta_items")
+        .update({ cantidad: newCant, subtotal: newSubtotal })
+        .eq("id_item", existingItem.id_item)
+        .select("*, producto:productos(*)")
+        .single();
+
+      if (updatedItem && posVenta) {
+        setPosVenta({
+          ...posVenta,
+          id_venta: currentVentaId as string,
+          items: posVenta.items.map(i => i.id_item === existingItem.id_item ? updatedItem : i)
+        });
+      }
+    } else {
+      const { data: newItem } = await supabase
+        .from("venta_items")
+        .insert({
+          id_venta: currentVentaId,
+          id_producto: prod.id_producto,
+          cantidad: 1,
+          precio_unitario: prod.precio_venta,
+          subtotal: prod.precio_venta
+        })
+        .select("*, producto:productos(*)")
+        .single();
+      
+      if (newItem) {
+        setPosVenta(prev => ({
+          id_venta: currentVentaId as string,
+          items: [...(prev?.items || []), newItem]
+        }));
+      }
+    }
+  };
+
+  const handleRemoveProduct = async (item: VentaItem) => {
+    if (!posVenta) return;
+
+    if (item.cantidad > 1) {
+      const newCant = item.cantidad - 1;
+      const newSubtotal = newCant * item.precio_unitario;
+      const { data: updatedItem } = await supabase
+        .from("venta_items")
+        .update({ cantidad: newCant, subtotal: newSubtotal })
+        .eq("id_item", item.id_item)
+        .select("*, producto:productos(*)")
+        .single();
+
+      if (updatedItem) {
+        setPosVenta({
+          ...posVenta,
+          items: posVenta.items.map(i => i.id_item === item.id_item ? updatedItem : i)
+        });
+      }
+    } else {
+      await supabase.from("venta_items").delete().eq("id_item", item.id_item);
+      setPosVenta({
+        ...posVenta,
+        items: posVenta.items.filter(i => i.id_item !== item.id_item)
+      });
+    }
+  };
+
+  // ----- Cálculos Dinámicos de Sesión -----
+  const getSessionDetails = (sesion: SesionMesa) => {
+    if (!sesion) return { timeString: "00:00:00", accumulatedValue: "0.00", tarifaNombre: "Normal", diffSecs: 0, isTimeUp: false };
+    
+    const isFijo = sesion.modalidad === 'fijo';
+    const isPartida = sesion.modalidad === 'partida';
+    
+    const inicio = new Date(sesion.inicio);
+    const diffMs = currentTime.getTime() - inicio.getTime();
+    const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
+    
+    const tarifa = tarifas.find(t => t.id_tarifa === sesion.id_tarifa);
+    const tarifaNombre = tarifa ? tarifa.nombre : "Tarifa Normal";
+    const fallbackPrecio = globalConfig?.tarifa_hora_mesa ? Number(globalConfig.tarifa_hora_mesa) : 30.00;
+    const precioHora = tarifa ? Number(tarifa.precio_hora) : fallbackPrecio;
+
+    let timeString = "00:00:00";
+    let accumulatedValue = "0.00";
+    let isTimeUp = false;
+
+    if (isPartida) {
+      timeString = "--:--:--";
+      accumulatedValue = Number(sesion.costo_partida || 0).toFixed(2);
+    } else if (isFijo) {
+      const totalSecs = (sesion.tiempo_fijo_minutos || 60) * 60;
+      let remaining = totalSecs - diffSecs;
+      if (remaining <= 0) {
+        remaining = 0;
+        isTimeUp = true;
+      }
+      
+      const hrs = Math.floor(remaining / 3600);
+      const mins = Math.floor((remaining % 3600) / 60);
+      const secs = remaining % 60;
+      timeString = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      
+      const costoFijo = ((sesion.tiempo_fijo_minutos || 60) / 60) * precioHora;
+      accumulatedValue = costoFijo.toFixed(2);
+    } else {
+      const hrs = Math.floor(diffSecs / 3600);
+      const mins = Math.floor((diffSecs % 3600) / 60);
+      const secs = diffSecs % 60;
+      timeString = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+      
+      accumulatedValue = ((diffSecs / 3600) * precioHora).toFixed(2);
+    }
+
+    return {
+      timeString,
+      accumulatedValue,
+      tarifaNombre: isPartida ? "Por Partida Fija" : tarifaNombre,
+      diffSecs,
+      isPartida,
+      isFijo,
+      isTimeUp
+    };
+  };
+
+  // ----- Cierre y Cobro -----
+  const openCobroModal = () => setIsClosingSession(true);
+
+  const handleConfirmClose = async () => {
+    if (!posSesion || !posMesa || !currentUser || !activeSucursalId) return;
+
+    try {
+      const sessionDetails = getSessionDetails(posSesion);
+      const totalTiempo = Number(sessionDetails.accumulatedValue);
+      const horasTranscurridas = sessionDetails.diffSecs / 3600;
+
+      const totalProductos = posVenta?.items.reduce((acc, item) => acc + item.subtotal, 0) || 0;
+      const granTotal = totalTiempo + totalProductos;
+
+      await supabase
+        .from("sesiones_mesa")
+        .update({
+          fin: new Date().toISOString(),
+          total_tiempo: Number(horasTranscurridas.toFixed(2)),
+          estado: "cerrada"
+        })
+        .eq("id_sesion", posSesion.id_sesion);
+
+      if (posVenta?.id_venta) {
+        await supabase.from("ventas").update({
+            total: granTotal, subtotal: granTotal, metodo_pago: metodoPago, estado: "completada"
+        }).eq("id_venta", posVenta.id_venta);
+      } else {
+        await supabase.from("ventas").insert({
+            id_sucursal: activeSucursalId, id_sesion: posSesion.id_sesion, id_usuario: currentUser.id_usuario,
+            total: granTotal, subtotal: granTotal, metodo_pago: metodoPago, estado: "completada"
+        });
+      }
+
+      setSesionesActivas(prev => { const copy = { ...prev }; delete copy[posMesa.id_mesa]; return copy; });
+
+      setIsClosingSession(false); setIsPosOpen(false); setPosSesion(null); setPosMesa(null); setPosVenta(null);
+    } catch (err: any) {
+      alert("Error al finalizar sesión: " + err.message);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex flex-col items-center justify-center py-24 text-malandro-gray">
+        <RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" />
+        <p className="text-sm">Conectando con Supabase y cargando mesas...</p>
+      </div>
+    );
+  }
+
+  const isAdmin = currentUser?.roles?.nivel >= 4;
+  const isMesero = currentUser?.roles?.nivel < 2;
+  const filteredProducts = activeCategory === 'all' ? productos : productos.filter(p => p.id_categoria === activeCategory);
+
+  return (
+    <div className="space-y-6 animate-in fade-in duration-500">
+      
+      {/* Encabezado */}
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2">
+            <CircleDot className="w-7 h-7 text-malandro-red" />
+            Control de Mesas
+          </h2>
+          <p className="text-sm text-malandro-gray">Abre mesas, elige modalidades y cobra en tiempo real.</p>
+        </div>
+        <div className="flex items-center gap-3">
+          <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all">
+            <RefreshCw className="w-4 h-4" />
+          </button>
+          {isAdmin && (
+            <button 
+              onClick={() => setIsManagingMesas(true)}
+              className="flex items-center gap-2 px-4 py-2 bg-malandro-red hover:bg-malandro-red-dark text-white rounded-lg text-sm font-bold transition-all shadow-[0_0_15px_rgba(211,47,47,0.2)]"
+            >
+              <Settings className="w-4 h-4" /> Gestionar Mesas
+            </button>
+          )}
+        </div>
+      </div>
+
+      {dbStateError && (
+        <div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl flex items-start gap-3">
+          <AlertCircle className="w-6 h-6 shrink-0" />
+          <p className="text-sm font-bold">{dbStateError}</p>
+        </div>
+      )}
+
+      {/* Grid de Mesas Visuales */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-x-8 gap-y-12 mt-6 pb-6">
+        {mesas.map((mesa) => {
+          const sesion = sesionesActivas[mesa.id_mesa];
+          const isEnUso = !!sesion;
+          const { timeString, accumulatedValue, tarifaNombre, isTimeUp, isPartida } = isEnUso 
+            ? getSessionDetails(sesion) 
+            : { timeString: "", accumulatedValue: "0.00", tarifaNombre: "", isTimeUp: false, isPartida: false };
+
+          return (
+            <div 
+              key={mesa.id_mesa} 
+              className={`relative p-3 rounded-[2rem] bg-neutral-900 shadow-2xl border-b-8 transition-all duration-300 aspect-[4/3] flex flex-col group ${
+                isEnUso ? "border-neutral-950 scale-[1.02] shadow-[0_20px_40px_rgba(211,47,47,0.15)]" : "border-neutral-950 hover:scale-[1.02]"
+              }`}
+            >
+              <div className={`relative w-full h-full rounded-[1.25rem] border-[6px] border-neutral-800 shadow-inner flex flex-col justify-center items-center overflow-hidden transition-colors duration-700
+                ${isEnUso ? (isTimeUp ? "bg-orange-800" : "bg-malandro-red/90") : "bg-emerald-800/90"}
+              `}>
+                <div className="absolute inset-0 opacity-30 bg-[radial-gradient(ellipse_at_center,_var(--tw-gradient-stops))] from-white/20 to-transparent mix-blend-overlay"></div>
+                
+                {/* Troneras */}
+                <div className="absolute -top-3 -left-3 w-8 h-8 bg-[#0a0a0a] rounded-full shadow-[inset_0_4px_8px_rgba(0,0,0,1)] z-0"></div>
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#0a0a0a] rounded-full shadow-[inset_0_4px_8px_rgba(0,0,0,1)] z-0"></div>
+                <div className="absolute -top-3 -right-3 w-8 h-8 bg-[#0a0a0a] rounded-full shadow-[inset_0_4px_8px_rgba(0,0,0,1)] z-0"></div>
+                <div className="absolute -bottom-3 -left-3 w-8 h-8 bg-[#0a0a0a] rounded-full shadow-[inset_0_4px_8px_rgba(0,0,0,1)] z-0"></div>
+                <div className="absolute -bottom-3 left-1/2 -translate-x-1/2 w-8 h-8 bg-[#0a0a0a] rounded-full shadow-[inset_0_4px_8px_rgba(0,0,0,1)] z-0"></div>
+                <div className="absolute -bottom-3 -right-3 w-8 h-8 bg-[#0a0a0a] rounded-full shadow-[inset_0_4px_8px_rgba(0,0,0,1)] z-0"></div>
+
+                <div className="absolute left-1/4 top-0 bottom-0 w-[1px] bg-white/10 z-0 hidden sm:block"></div>
+                <div className="absolute left-1/4 top-1/2 -translate-y-1/2 w-2 h-2 rounded-full bg-white/20 z-0 hidden sm:block"></div>
+
+                <div className="z-10 bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center w-[85%] text-center shadow-2xl transition-all">
+                  <h3 className="font-black text-white text-lg sm:text-xl uppercase tracking-widest mb-0.5 line-clamp-1">{mesa.nombre || `Mesa ${mesa.numero}`}</h3>
+                  <span className="text-[10px] text-white/70 uppercase font-bold tracking-widest mb-3">{mesa.tipo}</span>
+                  
+                  {isEnUso ? (
+                    <div className="w-full border-t border-white/20 pt-3 flex flex-col items-center">
+                      <div className="flex items-center justify-center gap-2 mb-1">
+                         {isPartida ? (
+                           <Check className="w-4 h-4 text-white" />
+                         ) : (
+                           <Timer className={`w-4 h-4 text-white ${isTimeUp ? 'animate-bounce text-orange-400' : 'animate-pulse'}`} />
+                         )}
+                         <span className={`font-mono text-xl sm:text-2xl font-bold tracking-wider drop-shadow-md ${isTimeUp ? 'text-orange-400' : 'text-white'}`}>
+                           {isTimeUp ? "¡TIEMPO!" : timeString}
+                         </span>
+                      </div>
+                      <div className="text-white/60 text-[10px] uppercase font-bold tracking-wider mb-1">{tarifaNombre}</div>
+                      <div className="text-white font-black text-lg sm:text-xl drop-shadow-md">
+                        Bs. {accumulatedValue}
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="w-full border-t border-white/10 pt-3 flex items-center justify-center gap-2 text-white/50">
+                      <Check className="w-4 h-4" />
+                      <span className="text-xs font-bold uppercase tracking-wider">Mesa Libre</span>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {isEnUso ? (
+                <button 
+                  onClick={() => openPos(mesa, sesion)} 
+                  className={`absolute -bottom-5 left-1/2 -translate-x-1/2 px-6 py-2.5 font-black text-sm uppercase rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.5)] hover:scale-105 active:scale-95 transition-all flex items-center gap-2 border z-20 whitespace-nowrap ${isTimeUp ? 'bg-orange-500 text-white border-orange-400 animate-pulse' : 'bg-white text-black border-white/20 hover:bg-neutral-200'}`}
+                >
+                  <ShoppingCart className="w-4 h-4" /> Ver Cuenta
+                </button>
+              ) : (
+                <button 
+                  disabled={isMesero}
+                  onClick={() => handleOpenSessionClick(mesa)} 
+                  className={`absolute -bottom-5 left-1/2 -translate-x-1/2 px-6 py-2.5 font-black text-sm uppercase rounded-full shadow-[0_10px_20px_rgba(0,0,0,0.5)] transition-all flex items-center gap-2 border z-20 whitespace-nowrap ${
+                    isMesero 
+                      ? 'bg-[#1a1a1c] text-malandro-gray/50 border-[#2a2a2c] cursor-not-allowed' 
+                      : 'bg-[#2a2a2c] text-white hover:bg-white hover:text-black hover:scale-105 active:scale-95 border-[#3a3a3c] hover:border-white'
+                  }`}
+                >
+                  {isMesero ? <span>Disponible</span> : <><Play className="w-4 h-4" /> Abrir Mesa</>}
+                </button>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* --- MODAL: Abrir Sesión con Modalidades --- */}
+      {isOpeningSession && selectedMesa && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-lg rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center bg-black/20">
+              <div>
+                <h3 className="font-bold text-lg text-white">Abrir {selectedMesa.nombre || `Mesa ${selectedMesa.numero}`}</h3>
+                <p className="text-xs text-malandro-gray uppercase">Configuración de Partida</p>
+              </div>
+              <button onClick={() => { setIsOpeningSession(false); setSelectedMesa(null); }} className="text-malandro-gray hover:text-white"><X className="w-5 h-5"/></button>
+            </div>
+            
+            <div className="p-6 space-y-6">
+              {/* Selector de Modalidad */}
+              <div className="space-y-3">
+                <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block">Modalidad de Juego</label>
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                  <button onClick={() => setModalidad('abierto')} className={`p-3 rounded-xl border text-center transition-all ${modalidad === 'abierto' ? 'bg-malandro-red/10 border-malandro-red text-white' : 'bg-black/20 border-[#2a2a2c] text-malandro-gray'}`}>
+                    <Timer className="w-5 h-5 mx-auto mb-1" />
+                    <span className="text-xs font-bold block">T. Libre</span>
+                  </button>
+                  <button onClick={() => setModalidad('fijo')} className={`p-3 rounded-xl border text-center transition-all ${modalidad === 'fijo' ? 'bg-malandro-red/10 border-malandro-red text-white' : 'bg-black/20 border-[#2a2a2c] text-malandro-gray'}`}>
+                    <Clock className="w-5 h-5 mx-auto mb-1" />
+                    <span className="text-xs font-bold block">T. Fijo</span>
+                  </button>
+                  <button onClick={() => setModalidad('partida')} className={`p-3 rounded-xl border text-center transition-all ${modalidad === 'partida' ? 'bg-malandro-red/10 border-malandro-red text-white' : 'bg-black/20 border-[#2a2a2c] text-malandro-gray'}`}>
+                    <CircleDot className="w-5 h-5 mx-auto mb-1" />
+                    <span className="text-xs font-bold block">Por Ficha</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Ajustes Específicos según Modalidad */}
+              {modalidad === 'abierto' && (
+                <div className="bg-black/20 p-4 rounded-xl border border-[#2a2a2c]">
+                  <p className="text-sm text-malandro-gray">El reloj contará hacia adelante. El costo se calculará por minuto según la tarifa elegida abajo.</p>
+                </div>
+              )}
+
+              {modalidad === 'fijo' && (
+                <div className="bg-black/20 p-4 rounded-xl border border-malandro-red/30 space-y-3 animate-in slide-in-from-top-2">
+                  <label className="text-xs font-bold text-white uppercase tracking-wider block">Tiempo Pre-pagado (Minutos)</label>
+                  <div className="flex gap-2">
+                    {[30, 60, 90, 120].map(min => (
+                      <button key={min} onClick={() => setTiempoFijoMinutos(min)} className={`flex-1 py-2 rounded-lg text-sm font-bold border transition-all ${tiempoFijoMinutos === min ? 'bg-malandro-red text-white border-malandro-red' : 'bg-[#1a1a1c] text-malandro-gray border-[#2a2a2c] hover:bg-[#2a2a2c]'}`}>{min}m</button>
+                    ))}
+                  </div>
+                  <div className="flex items-center gap-2 mt-2">
+                    <span className="text-malandro-gray text-sm">Personalizado:</span>
+                    <input type="number" min="1" value={tiempoFijoMinutos} onChange={e => setTiempoFijoMinutos(parseInt(e.target.value) || 0)} className="w-20 bg-black border border-[#2a2a2c] rounded py-1 px-2 text-white outline-none focus:border-malandro-red text-center" />
+                    <span className="text-malandro-gray text-sm">min</span>
+                  </div>
+                </div>
+              )}
+
+              {modalidad === 'partida' && (
+                <div className="bg-black/20 p-4 rounded-xl border border-malandro-red/30 space-y-3 animate-in slide-in-from-top-2">
+                  <label className="text-xs font-bold text-white uppercase tracking-wider block">Costo Fijo por Partida</label>
+                  <div className="relative">
+                    <span className="absolute left-3 top-1/2 -translate-y-1/2 text-malandro-gray">Bs.</span>
+                    <input type="number" step="0.5" value={costoPartida} onChange={e => setCostoPartida(parseFloat(e.target.value) || 0)} className="w-full bg-black border border-[#2a2a2c] rounded-lg py-3 pl-10 pr-4 text-white text-lg font-bold outline-none focus:border-malandro-red" />
+                  </div>
+                  <p className="text-xs text-malandro-gray">No se tomará en cuenta el tiempo ni la tarifa por hora elegida.</p>
+                </div>
+              )}
+
+              {/* Selector de Tarifa (Oculto o bloqueado visualmente si es por partida, aunque el back requiera un ID) */}
+              <div className={`space-y-2 ${modalidad === 'partida' ? 'opacity-50 pointer-events-none' : ''}`}>
+                <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block">Seleccionar Tarifa de Juego</label>
+                <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-2">
+                  {tarifas.map((t) => (
+                    <button
+                      key={t.id_tarifa}
+                      onClick={() => setSelectedTarifaId(t.id_tarifa)}
+                      className={`p-3 border rounded-xl text-left flex justify-between items-center transition-all ${
+                        selectedTarifaId === t.id_tarifa 
+                          ? "border-malandro-red bg-malandro-red/10 text-white" 
+                          : "border-[#2a2a2c] bg-black/20 text-malandro-gray hover:text-white"
+                      }`}
+                    >
+                      <div>
+                        <div className="font-bold text-sm text-white">{t.nombre}</div>
+                        <div className="text-xs text-malandro-gray capitalize">Días: {t.tipo_dia}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-extrabold text-white">Bs. {t.precio_hora.toFixed(2)}</div>
+                        <div className="text-[10px] text-malandro-gray">por hora</div>
+                      </div>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
+              <button onClick={() => { setIsOpeningSession(false); setSelectedMesa(null); }} className="flex-1 py-3 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
+              <button onClick={handleConfirmStart} className="flex-[2] py-3 rounded-lg bg-malandro-red hover:bg-malandro-red-dark text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(211,47,47,0.3)]"><Play className="w-4 h-4 fill-white" /> Iniciar Mesa</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- PANEL DE POS (Inalterado estructuralmente, reusando código existente) --- */}
+      {isPosOpen && posMesa && posSesion && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6">
+          <div className="bg-[#141416] border border-[#2a2a2c] w-full h-full max-w-6xl rounded-2xl flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+            {/* IZQUIERDA: Cuenta y Resumen */}
+            <div className="w-full md:w-1/3 border-r border-[#2a2a2c] flex flex-col bg-[#1a1a1c]">
+              <div className="p-5 border-b border-[#2a2a2c] bg-[#1a1a1c] flex justify-between items-center shrink-0">
+                <div>
+                  <h3 className="font-black text-xl text-white flex items-center gap-2">
+                    <CircleDot className="text-malandro-red w-5 h-5" />
+                    Mesa {posMesa.numero}
+                  </h3>
+                  <span className="text-xs text-malandro-gray uppercase font-bold tracking-wider">{posSesion.modalidad}</span>
+                </div>
+                <button onClick={() => setIsPosOpen(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-malandro-gray transition-colors"><X className="w-5 h-5" /></button>
+              </div>
+
+              {/* Items de la cuenta */}
+              <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-[#2a2a2c]">
+                
+                {/* Item fijo de Tiempo de Juego */}
+                <div className="bg-[#2a2a2c]/30 border border-malandro-red/30 p-3 rounded-xl flex items-center justify-between">
+                  <div className="flex items-center gap-3">
+                    <div className="bg-malandro-red/20 p-2 rounded-lg">
+                      {posSesion.modalidad === 'partida' ? <Check className="w-5 h-5 text-malandro-red" /> : <Timer className="w-5 h-5 text-malandro-red animate-pulse" />}
+                    </div>
+                    <div>
+                      <h4 className="font-bold text-white text-sm">{posSesion.modalidad === 'partida' ? 'Cargo Fijo por Ficha' : 'Tiempo de Juego'}</h4>
+                      <p className="text-xs text-malandro-gray font-mono">{getSessionDetails(posSesion).timeString} ({getSessionDetails(posSesion).tarifaNombre})</p>
+                    </div>
+                  </div>
+                  <div className="text-right font-black text-white">
+                    Bs. {getSessionDetails(posSesion).accumulatedValue}
+                  </div>
+                </div>
+
+                {/* Items de Productos */}
+                {posVenta?.items.map((item) => (
+                  <div key={item.id_item} className="bg-black/30 border border-[#2a2a2c] p-3 rounded-xl flex items-center justify-between group">
+                    <div className="flex items-center gap-3 flex-1">
+                      <div className="flex flex-col items-center gap-1 bg-[#1a1a1c] border border-[#2a2a2c] rounded-lg overflow-hidden shrink-0">
+                        <button onClick={() => handleAddProduct(item.producto as Producto)} className="p-1 hover:bg-[#2a2a2c] text-white w-full flex justify-center"><Plus className="w-3 h-3" /></button>
+                        <span className="text-xs font-bold w-7 text-center">{item.cantidad}</span>
+                        <button onClick={() => handleRemoveProduct(item)} className="p-1 hover:bg-[#2a2a2c] text-white w-full flex justify-center"><Minus className="w-3 h-3" /></button>
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <h4 className="font-bold text-white text-sm truncate">{item.producto?.nombre}</h4>
+                        <p className="text-[10px] text-malandro-gray">Bs. {Number(item.precio_unitario).toFixed(2)} c/u</p>
+                      </div>
+                    </div>
+                    <div className="text-right font-bold text-white ml-2">
+                      Bs. {Number(item.subtotal).toFixed(2)}
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Totalizador */}
+              <div className="p-5 border-t border-[#2a2a2c] bg-[#1a1a1c] shrink-0">
+                <div className="flex justify-between mb-2 text-sm">
+                  <span className="text-malandro-gray">Subtotal Productos</span>
+                  <span className="font-bold text-white">Bs. {(posVenta?.items.reduce((acc, i) => acc + i.subtotal, 0) || 0).toFixed(2)}</span>
+                </div>
+                <div className="flex justify-between mb-4 text-sm border-b border-[#2a2a2c] pb-4">
+                  <span className="text-malandro-gray">{posSesion.modalidad === 'partida' ? 'Costo Fijo' : 'Tiempo Calculado'}</span>
+                  <span className="font-bold text-malandro-red">Bs. {getSessionDetails(posSesion).accumulatedValue}</span>
+                </div>
+                <div className="flex justify-between items-end mb-4">
+                  <span className="text-xs text-malandro-gray uppercase tracking-wider font-bold">Total a Pagar</span>
+                  <span className="text-3xl font-black text-white">
+                    Bs. {((posVenta?.items.reduce((acc, i) => acc + i.subtotal, 0) || 0) + Number(getSessionDetails(posSesion).accumulatedValue)).toFixed(2)}
+                  </span>
+                </div>
+                {isMesero ? (
+                  <div className="w-full py-3 border border-[#2a2a2c] bg-black/20 text-malandro-gray rounded-xl text-center text-sm font-bold flex flex-col justify-center">
+                    Solo Cajero puede cobrar
+                    <span className="text-[10px] font-normal opacity-70">Avisa al cliente que pase a caja.</span>
+                  </div>
+                ) : (
+                  <button onClick={openCobroModal} className="w-full py-4 bg-malandro-red hover:bg-malandro-red-dark text-white rounded-xl font-bold text-lg transition-all shadow-[0_0_20px_rgba(211,47,47,0.3)] flex justify-center items-center gap-2">
+                    <Banknote className="w-5 h-5" /> Cobrar y Finalizar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            {/* DERECHA: Catálogo POS */}
+            <div className="flex-1 flex flex-col bg-[#141416]">
+              <div className="p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] overflow-x-auto flex gap-2 shrink-0 scrollbar-hide">
+                <button onClick={() => setActiveCategory('all')} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === 'all' ? 'bg-white text-black' : 'bg-[#2a2a2c] text-malandro-gray hover:text-white'}`}>Todos</button>
+                {categorias.map(cat => <button key={cat.id_categoria} onClick={() => setActiveCategory(cat.id_categoria)} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id_categoria ? 'bg-white text-black' : 'bg-[#2a2a2c] text-malandro-gray hover:text-white'}`}>{cat.nombre}</button>)}
+              </div>
+              <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 content-start">
+                {filteredProducts.map(prod => (
+                  <button key={prod.id_producto} onClick={() => handleAddProduct(prod)} className="bg-[#1a1a1c] border border-[#2a2a2c] hover:border-malandro-red/50 hover:shadow-[0_0_15px_rgba(211,47,47,0.15)] rounded-2xl p-4 flex flex-col items-center justify-between aspect-square transition-all active:scale-95 group">
+                    <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mb-3 group-hover:bg-malandro-red/20 transition-colors">
+                      <Tag className="w-5 h-5 text-malandro-gray group-hover:text-malandro-red" />
+                    </div>
+                    <div className="text-center w-full">
+                      <h4 className="font-bold text-sm text-white leading-tight mb-1 line-clamp-2">{prod.nombre}</h4>
+                      <p className="font-black text-malandro-red">Bs. {prod.precio_venta.toFixed(2)}</p>
+                    </div>
+                  </button>
+                ))}
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* MODAL: Cobrar Checkout Final */}
+      {isClosingSession && posSesion && posMesa && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[60] flex items-center justify-center p-4">
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 shadow-2xl">
+            <div className="p-6 border-b border-[#2a2a2c] text-center">
+              <h3 className="font-black text-2xl text-white">Finalizar Mesa {posMesa.numero}</h3>
+              <p className="text-sm text-malandro-gray">Elige el método de pago para cerrar</p>
+            </div>
+            <div className="p-6 space-y-6">
+              <div className="bg-malandro-red/10 border border-malandro-red/30 p-6 rounded-2xl text-center space-y-2">
+                <span className="text-sm text-malandro-red uppercase tracking-wider font-bold">Total a Cobrar</span>
+                <div className="text-5xl font-black text-white">Bs. {((posVenta?.items.reduce((acc, i) => acc + i.subtotal, 0) || 0) + Number(getSessionDetails(posSesion).accumulatedValue)).toFixed(2)}</div>
+              </div>
+              <div className="space-y-3">
+                <label className="text-sm font-medium text-malandro-gray block text-center">Método de Pago</label>
+                <div className="grid grid-cols-3 gap-3">
+                  {(['efectivo', 'tarjeta', 'qr'] as const).map((metodo) => (
+                    <button key={metodo} onClick={() => setMetodoPago(metodo)} className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${metodoPago === metodo ? "border-malandro-red bg-malandro-red/20 text-white" : "border-[#2a2a2c] bg-black/40 text-malandro-gray hover:text-white hover:bg-[#2a2a2c]"}`}>
+                      <Banknote className="w-6 h-6" />
+                      <span className="text-xs font-bold capitalize">{metodo}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+            <div className="p-6 border-t border-[#2a2a2c] bg-black/40 flex gap-3">
+              <button onClick={() => setIsClosingSession(false)} className="flex-1 py-3 rounded-xl border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold transition-all">Volver</button>
+              <button onClick={handleConfirmClose} className="flex-1 py-3 rounded-xl bg-green-600 hover:bg-green-500 text-white font-bold transition-all flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(22,163,74,0.4)]"><Check className="w-5 h-5" /> Confirmar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* --- MODAL: GESTIÓN DE MESAS (CRUD) --- */}
+      {isManagingMesas && (
+        <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-[70] flex items-center justify-center p-4">
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-3xl rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center shrink-0 bg-black/20">
+              <h3 className="font-bold text-xl text-white flex items-center gap-2">
+                <Settings className="w-6 h-6 text-malandro-red" /> 
+                Gestión de Mesas
+              </h3>
+              <button onClick={() => { setIsManagingMesas(false); setIsEditingMesa(false); }} className="text-malandro-gray hover:text-white"><X className="w-5 h-5"/></button>
+            </div>
+
+            <div className="p-6 border-b border-[#2a2a2c] bg-[#141416] shrink-0">
+              <div className="flex flex-col sm:flex-row gap-4 items-end">
+                <div className="w-full sm:w-24">
+                  <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block mb-1">Número</label>
+                  <input type="number" value={mesaFormData.numero} onChange={e => setMesaFormData({...mesaFormData, numero: parseInt(e.target.value)||1})} className="w-full bg-black border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:border-malandro-red outline-none" />
+                </div>
+                <div className="flex-1 w-full">
+                  <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block mb-1">Nombre (Opcional)</label>
+                  <input type="text" placeholder="Ej: VIP Central" value={mesaFormData.nombre || ""} onChange={e => setMesaFormData({...mesaFormData, nombre: e.target.value})} className="w-full bg-black border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:border-malandro-red outline-none" />
+                </div>
+                <div className="flex-1 w-full">
+                  <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block mb-1">Tipo</label>
+                  <select value={mesaFormData.tipo} onChange={e => setMesaFormData({...mesaFormData, tipo: e.target.value as any})} className="w-full bg-black border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:border-malandro-red outline-none [color-scheme:dark]">
+                    <option value="pool">Pool</option>
+                    <option value="americana">Americana</option>
+                    <option value="snooker">Snooker</option>
+                    <option value="carambola">Carambola</option>
+                  </select>
+                </div>
+                <div className="w-full sm:w-auto">
+                  <button onClick={handleSaveMesa} className="w-full sm:w-auto px-6 py-2.5 bg-malandro-red hover:bg-malandro-red-dark text-white rounded-lg font-bold flex items-center justify-center gap-2 transition-all">
+                    {isEditingMesa ? <Check className="w-4 h-4"/> : <Plus className="w-4 h-4"/>}
+                    {isEditingMesa ? 'Guardar' : 'Añadir'}
+                  </button>
+                </div>
+                {isEditingMesa && (
+                  <button onClick={() => { setIsEditingMesa(false); setMesaFormData({numero:1, nombre:"", tipo:'pool'}); }} className="px-4 py-2.5 border border-[#2a2a2c] hover:bg-[#2a2a2c] rounded-lg text-white font-bold transition-all">
+                    Cancelar
+                  </button>
+                )}
+              </div>
+            </div>
+
+            <div className="flex-1 overflow-y-auto p-0">
+              <table className="w-full text-left border-collapse">
+                <thead className="sticky top-0 bg-[#1a1a1c] z-10 shadow-sm">
+                  <tr className="border-b border-[#2a2a2c] text-xs font-bold text-malandro-gray tracking-wider uppercase">
+                    <th className="py-4 pl-6">Mesa</th>
+                    <th className="py-4">Tipo</th>
+                    <th className="py-4 text-center">Estado</th>
+                    <th className="py-4 pr-6 text-right">Acciones</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {todasMesas.map(m => (
+                    <tr key={m.id_mesa} className={`border-b border-[#2a2a2c]/40 hover:bg-white/[0.02] transition-colors ${!m.activo ? 'opacity-50' : ''}`}>
+                      <td className="py-4 pl-6">
+                        <div className="flex items-center gap-3">
+                          <div className={`w-8 h-8 rounded-lg flex items-center justify-center font-black ${m.activo ? 'bg-white text-black' : 'bg-[#2a2a2c] text-white'}`}>
+                            {m.numero}
+                          </div>
+                          <span className="font-bold text-white text-sm">{m.nombre || `Mesa ${m.numero}`}</span>
+                        </div>
+                      </td>
+                      <td className="py-4 text-sm text-malandro-gray capitalize">{m.tipo}</td>
+                      <td className="py-4 text-center">
+                        <span className={`px-3 py-1 text-xs font-bold uppercase rounded-full border ${m.activo ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                          {m.activo ? 'Visible' : 'Oculta/Suspendida'}
+                        </span>
+                      </td>
+                      <td className="py-4 pr-6">
+                        <div className="flex justify-end gap-2">
+                          <button 
+                            onClick={() => { setMesaFormData(m); setIsEditingMesa(true); }}
+                            className="p-2 bg-[#2a2a2c] hover:bg-white/20 rounded-lg text-white transition-all" title="Editar Mesa"
+                          >
+                            <Edit2 className="w-4 h-4" />
+                          </button>
+                          <button 
+                            onClick={() => handleToggleEstadoMesa(m)}
+                            className={`p-2 rounded-lg transition-all ${m.activo ? 'bg-orange-500/20 text-orange-400 hover:bg-orange-500/40' : 'bg-green-500/20 text-green-400 hover:bg-green-500/40'}`}
+                            title={m.activo ? "Suspender Mesa" : "Activar Mesa"}
+                          >
+                            {m.activo ? <Archive className="w-4 h-4" /> : <Power className="w-4 h-4" />}
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+    </div>
+  );
+}
