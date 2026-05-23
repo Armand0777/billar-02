@@ -3,9 +3,11 @@
 import { useState, useEffect } from "react";
 import {
   Receipt, Search, Eye, XCircle, RefreshCw, Calendar,
-  Banknote, TrendingUp, ShoppingBag, AlertTriangle, X, CreditCard
+  Banknote, TrendingUp, ShoppingBag, AlertTriangle, X, CreditCard,
+  Plus
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import VentaDirectaPOS from "@/components/VentaDirectaPOS";
 
 interface VentaRow {
   id_venta: string;
@@ -22,6 +24,7 @@ export default function VentasPage() {
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState("");
   const [ventas, setVentas] = useState<VentaRow[]>([]);
+  const [isDirectPOSOpen, setIsDirectPOSOpen] = useState(false);
 
   // Filtros
   const [fechaDesde, setFechaDesde] = useState("");
@@ -118,7 +121,10 @@ export default function VentasPage() {
           <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Receipt className="w-7 h-7 text-malandro-red" /> Historial de Ventas</h2>
           <p className="text-sm text-malandro-gray">Revisa, filtra y gestiona todas las ventas registradas.</p>
         </div>
-        <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
+        <div className="flex gap-2">
+          <button onClick={() => setIsDirectPOSOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-malandro-red hover:bg-malandro-red-dark text-white font-bold rounded-lg text-sm transition-all shadow-[0_0_15px_rgba(211,47,47,0.3)]"><Plus className="w-4 h-4" /> Venta Directa</button>
+          <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
+        </div>
       </div>
 
       {dbError && (<div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl flex items-start gap-3"><AlertTriangle className="w-6 h-6 shrink-0" /><div><h4 className="font-bold text-white">Error</h4><p className="text-sm">{dbError}</p></div></div>)}
@@ -217,6 +223,13 @@ export default function VentasPage() {
             </div>
           </div>
         </div>
+      )}
+
+      {isDirectPOSOpen && (
+        <VentaDirectaPOS 
+          onClose={() => setIsDirectPOSOpen(false)}
+          onSuccess={() => { setIsDirectPOSOpen(false); loadData(); }}
+        />
       )}
     </div>
   );

@@ -293,7 +293,6 @@ export default function MesasPage() {
           id_sesion: posSesion.id_sesion,
           id_usuario: currentUser.id_usuario,
           estado: "pendiente",
-          subtotal: 0,
           total: 0
         })
         .select()
@@ -457,12 +456,12 @@ export default function MesasPage() {
 
       if (posVenta?.id_venta) {
         await supabase.from("ventas").update({
-            total: granTotal, subtotal: granTotal, metodo_pago: metodoPago, estado: "completada"
+            total: granTotal, metodo_pago: metodoPago, estado: "completada"
         }).eq("id_venta", posVenta.id_venta);
       } else {
         await supabase.from("ventas").insert({
             id_sucursal: activeSucursalId, id_sesion: posSesion.id_sesion, id_usuario: currentUser.id_usuario,
-            total: granTotal, subtotal: granTotal, metodo_pago: metodoPago, estado: "completada"
+            total: granTotal, metodo_pago: metodoPago, estado: "completada"
         });
       }
 
@@ -709,13 +708,13 @@ export default function MesasPage() {
         </div>
       )}
 
-      {/* --- PANEL DE POS (Inalterado estructuralmente, reusando código existente) --- */}
+      {/* --- PANEL DE POS --- */}
       {isPosOpen && posMesa && posSesion && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-md z-50 flex items-center justify-center p-2 sm:p-6">
-          <div className="bg-[#141416] border border-[#2a2a2c] w-full h-full max-w-6xl rounded-2xl flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
+          <div className="bg-[#141416] border border-[#2a2a2c] w-full h-[95vh] md:h-full max-w-6xl rounded-2xl flex flex-col md:flex-row overflow-hidden shadow-2xl animate-in fade-in zoom-in-95 duration-200">
             {/* IZQUIERDA: Cuenta y Resumen */}
-            <div className="w-full md:w-1/3 border-r border-[#2a2a2c] flex flex-col bg-[#1a1a1c]">
-              <div className="p-5 border-b border-[#2a2a2c] bg-[#1a1a1c] flex justify-between items-center shrink-0">
+            <div className="w-full md:w-1/3 h-[50vh] md:h-full border-b md:border-b-0 md:border-r border-[#2a2a2c] flex flex-col bg-[#1a1a1c]">
+              <div className="p-4 sm:p-5 border-b border-[#2a2a2c] bg-[#1a1a1c] flex justify-between items-center shrink-0">
                 <div>
                   <h3 className="font-black text-xl text-white flex items-center gap-2">
                     <CircleDot className="text-malandro-red w-5 h-5" />
@@ -796,8 +795,8 @@ export default function MesasPage() {
             </div>
 
             {/* DERECHA: Catálogo POS */}
-            <div className="flex-1 flex flex-col bg-[#141416]">
-              <div className="p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] overflow-x-auto flex gap-2 shrink-0 scrollbar-hide">
+            <div className="flex-1 h-[45vh] md:h-full flex flex-col bg-[#141416]">
+              <div className="p-3 sm:p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] overflow-x-auto flex gap-2 shrink-0 scrollbar-hide">
                 <button onClick={() => setActiveCategory('all')} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === 'all' ? 'bg-white text-black' : 'bg-[#2a2a2c] text-malandro-gray hover:text-white'}`}>Todos</button>
                 {categorias.map(cat => <button key={cat.id_categoria} onClick={() => setActiveCategory(cat.id_categoria)} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id_categoria ? 'bg-white text-black' : 'bg-[#2a2a2c] text-malandro-gray hover:text-white'}`}>{cat.nombre}</button>)}
               </div>
