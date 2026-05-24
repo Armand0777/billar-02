@@ -6,6 +6,7 @@ import {
   User, UserCheck, UserX, Banknote
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { printReceipt } from "@/utils/printReceipt";
 
 interface Producto {
   id_producto: string;
@@ -123,7 +124,7 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("No estás autenticado.");
       
-      const { data: userProfile } = await supabase.from("usuarios").select("id_usuario, id_sucursal").eq("auth_id", userData.user.id).single();
+      const { data: userProfile } = await supabase.from("usuarios").select("id_usuario, id_sucursal, nombre").eq("auth_id", userData.user.id).single();
       if (!userProfile) throw new Error("Perfil de usuario no encontrado.");
 
       // Insertar Venta
@@ -148,8 +149,7 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
         id_venta: newVenta.id_venta,
         id_producto: item.id_producto,
         cantidad: item.cantidad,
-        precio_unitario: item.precio_unitario,
-        subtotal: item.subtotal
+        precio_unitario: item.precio_unitario
       }));
 
       const { error: itemsError } = await supabase.from("venta_items").insert(itemsToInsert);
@@ -162,6 +162,21 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
            await supabase.rpc('increment_puntos', { x_cliente: selectedCliente.id_cliente, x_puntos: puntosGanados });
          }
       }
+
+      // Imprimir recibo
+      printReceipt({
+        tipo: "directa",
+        cajero: userProfile.nombre || "Cajero",
+        cliente: selectedCliente?.id_cliente !== 'anon' ? selectedCliente?.nombre : undefined,
+        productos: cart.map(i => ({
+          nombre: i.producto.nombre,
+          cantidad: i.cantidad,
+          precio_unitario: i.precio_unitario,
+          subtotal: i.subtotal
+        })),
+        totalGeneral: totalCart,
+        metodoPago: metodoPago
+      });
 
       onSuccess();
     } catch (err: any) {

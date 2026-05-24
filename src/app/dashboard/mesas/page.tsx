@@ -5,9 +5,10 @@ import {
   CircleDot, Play, Square, Timer, PlusCircle, AlertCircle, 
   HelpCircle, RefreshCw, Layers, Banknote, User, Clock, Check,
   X, Plus, Minus, ShoppingCart, Tag, Coffee, Settings, Edit2, 
-  Archive, Power
+  Archive, Power, Printer
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import { printReceipt } from "@/utils/printReceipt";
 
 interface Mesa {
   id_mesa: string;
@@ -311,7 +312,7 @@ export default function MesasPage() {
 
       const { data: updatedItem } = await supabase
         .from("venta_items")
-        .update({ cantidad: newCant, subtotal: newSubtotal })
+        .update({ cantidad: newCant })
         .eq("id_item", existingItem.id_item)
         .select("*, producto:productos(*)")
         .single();
@@ -330,8 +331,7 @@ export default function MesasPage() {
           id_venta: currentVentaId,
           id_producto: prod.id_producto,
           cantidad: 1,
-          precio_unitario: prod.precio_venta,
-          subtotal: prod.precio_venta
+          precio_unitario: prod.precio_venta
         })
         .select("*, producto:productos(*)")
         .single();
@@ -464,6 +464,28 @@ export default function MesasPage() {
             total: granTotal, metodo_pago: metodoPago, estado: "completada"
         });
       }
+
+      // Preparar datos para imprimir el recibo
+      const receiptData = {
+        tipo: "mesa" as const,
+        mesaNumero: posMesa.numero,
+        cajero: currentUser.nombre || "Cajero",
+        tiempo: {
+          horas: sessionDetails.timeString,
+          costo: totalTiempo,
+          tarifaNombre: sessionDetails.tarifaNombre
+        },
+        productos: (posVenta?.items || []).map(i => ({
+          nombre: i.producto?.nombre || "Producto",
+          cantidad: i.cantidad,
+          precio_unitario: i.precio_unitario,
+          subtotal: i.cantidad * i.precio_unitario
+        })),
+        totalGeneral: granTotal,
+        metodoPago: metodoPago
+      };
+
+      printReceipt(receiptData);
 
       setSesionesActivas(prev => { const copy = { ...prev }; delete copy[posMesa.id_mesa]; return copy; });
 
