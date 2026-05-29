@@ -29,3 +29,28 @@ body {
   -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 255, 255, 0.1);
 }
+
+/* Custom Scrollbar */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--color-malandro-black);
+}
+
+::-webkit-scrollbar-thumb {
+  background: #3a3a3c;
+  border-radius: 10px;
+  border: 2px solid var(--color-malandro-black);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-malandro-red);
+}
+
+html {
+  scrollbar-width: thin;
+  scrollbar-color: #3a3a3c var(--color-malandro-black);
+}

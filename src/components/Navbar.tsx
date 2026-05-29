@@ -17,6 +17,8 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
   const [isStaff, setIsStaff] = useState(false);
   const [staffRoleName, setStaffRoleName] = useState("");
   const [staffRoleLevel, setStaffRoleLevel] = useState(0);
+  const [clientPoints, setClientPoints] = useState(0);
+  const [avatarUrl, setAvatarUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
   const [searchVal, setSearchVal] = useState("");
@@ -79,6 +81,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
           .from("usuarios")
           .select(`
             id_rol,
+            avatar_url,
             roles (
               nombre,
               nivel
@@ -93,11 +96,25 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
         setIsStaff(hasRole);
         setStaffRoleName(rolObj?.nombre || "");
         setStaffRoleLevel(rolObj?.nivel || 0);
+
+        if (!hasRole) {
+          const { data: clientData } = await supabase
+            .from("clientes")
+            .select("puntos_fidelidad, avatar_url")
+            .eq("auth_id", authUser.id)
+            .maybeSingle();
+          setClientPoints(clientData?.puntos_fidelidad || 0);
+          setAvatarUrl(clientData?.avatar_url || null);
+        } else {
+          setAvatarUrl(staffData?.avatar_url || null);
+        }
       } else {
         setUser(null);
         setIsStaff(false);
         setStaffRoleName("");
         setStaffRoleLevel(0);
+        setClientPoints(0);
+        setAvatarUrl(null);
       }
       setLoading(false);
     };
@@ -112,6 +129,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
           .from("usuarios")
           .select(`
             id_rol,
+            avatar_url,
             roles (
               nombre,
               nivel
@@ -126,11 +144,25 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
         setIsStaff(hasRole);
         setStaffRoleName(rolObj?.nombre || "");
         setStaffRoleLevel(rolObj?.nivel || 0);
+
+        if (!hasRole) {
+          const { data: clientData } = await supabase
+            .from("clientes")
+            .select("puntos_fidelidad, avatar_url")
+            .eq("auth_id", session.user.id)
+            .maybeSingle();
+          setClientPoints(clientData?.puntos_fidelidad || 0);
+          setAvatarUrl(clientData?.avatar_url || null);
+        } else {
+          setAvatarUrl(staffData?.avatar_url || null);
+        }
       } else {
         setUser(null);
         setIsStaff(false);
         setStaffRoleName("");
         setStaffRoleLevel(0);
+        setClientPoints(0);
+        setAvatarUrl(null);
       }
     });
 
@@ -149,7 +181,18 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
     }
 
     try {
-      // 2. Limpieza manual y forzada de local y session storage
+      // 2. Limpieza manual de cookies de Supabase (por si el server-side auth se atasca)
+      if (typeof document !== "undefined") {
+        const cookies = document.cookie.split("; ");
+        for (let c of cookies) {
+          const [name] = c.split("=");
+          if (name.startsWith("sb-")) {
+            document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;`;
+          }
+        }
+      }
+      
+      // Limpieza de local y session storage
       if (typeof window !== "undefined") {
         localStorage.clear();
         sessionStorage.clear();
@@ -158,10 +201,9 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
       console.error("Error al limpiar almacenamiento de sesión:", cleanErr);
     }
 
-    // 3. Forzar redirección con recarga completa para limpiar memoria y caché de Next.js
-    if (typeof window !== "undefined") {
-      window.location.href = "/";
-    }
+    // 3. Forzar redirección con router de Next.js
+    router.push("/");
+    router.refresh();
   };
 
   return (
@@ -261,9 +303,15 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
               className="flex items-center gap-2.5 p-2 pr-4 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 transition-all text-sm font-semibold hover:scale-105 active:scale-95 shadow-md"
             >
               {user ? (
-                <div className="w-9 h-9 rounded-full bg-gradient-to-br from-malandro-red to-malandro-red-dark flex items-center justify-center font-bold text-white shadow-md text-sm">
-                  {user.email?.charAt(0).toUpperCase()}
-                </div>
+                avatarUrl ? (
+                  <div className="w-9 h-9 rounded-full bg-[#2a2a2c] flex items-center justify-center border border-white/5 overflow-hidden shadow-md">
+                    <img src={avatarUrl} alt="Avatar" className="w-full h-full object-cover" />
+                  </div>
+                ) : (
+                  <div className="w-9 h-9 rounded-full bg-gradient-to-br from-malandro-red to-malandro-red-dark flex items-center justify-center font-bold text-white shadow-md text-sm">
+                    {user.email?.charAt(0).toUpperCase()}
+                  </div>
+                )
               ) : (
                 <div className="w-9 h-9 rounded-full bg-[#2a2a2c] flex items-center justify-center text-malandro-gray border border-white/5">
                   <UserCircle className="w-5.5 h-5.5" />
@@ -291,7 +339,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
                     ) : (
                       <div className="mt-2 flex items-center gap-1.5 text-xs text-malandro-red font-semibold bg-malandro-red/10 px-2 py-0.5 rounded-full w-max">
                         <Award className="w-3.5 h-3.5" />
-                        <span>150 Puntos Malandro</span>
+                        <span>{clientPoints} Puntos Malandro</span>
                       </div>
                     )}
                   </div>
@@ -303,7 +351,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
                         <UserCircle className="w-4 h-4 text-malandro-red" />
                         Mi Perfil / Datos
                       </Link>
-                      <Link href="#torneos" className="flex items-center gap-3 px-4 py-2.5 text-sm text-malandro-gray hover:text-white hover:bg-white/5 transition-colors">
+                      <Link href="/mis-torneos" className="flex items-center gap-3 px-4 py-2.5 text-sm text-malandro-gray hover:text-white hover:bg-white/5 transition-colors">
                         <Trophy className="w-4 h-4 text-malandro-red" />
                         Mis Torneos
                       </Link>
@@ -360,7 +408,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
                   </div>
 
                   <div className="h-px bg-white/5 my-1" />
-                  <Link href="#torneos" className="flex items-center gap-3 px-4 py-2 text-xs text-malandro-gray hover:text-white hover:bg-white/5 transition-colors">
+                  <Link href="/mis-torneos" className="flex items-center gap-3 px-4 py-2 text-xs text-malandro-gray hover:text-white hover:bg-white/5 transition-colors">
                     <Trophy className="w-3.5 h-3.5 text-malandro-red" />
                     Torneos Activos
                   </Link>
@@ -391,7 +439,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
           <Link href="/" onClick={() => setIsOpen(false)} className="text-white font-medium p-2 hover:bg-white/5 rounded-lg flex items-center gap-2">
             Inicio
           </Link>
-          <Link href="#torneos" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg">
+          <Link href="/mis-torneos" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg">
             Torneos
           </Link>
           <Link href="#menu" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg">
@@ -411,7 +459,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
                   </p>
                 ) : (
                   <p className="text-[11px] text-malandro-red font-bold mt-1 flex items-center gap-1">
-                    <Award className="w-3.5 h-3.5" /> 150 Puntos Malandro
+                    <Award className="w-3.5 h-3.5" /> {clientPoints} Puntos Malandro
                   </p>
                 )}
               </div>
@@ -421,7 +469,7 @@ export default function Navbar({ hideMobileMenu = false }: { hideMobileMenu?: bo
                   <Link href="/perfil" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg flex items-center gap-2">
                     <UserCircle className="w-4 h-4 text-malandro-red" /> Mi Perfil
                   </Link>
-                  <Link href="#torneos" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg flex items-center gap-2">
+                  <Link href="/mis-torneos" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg flex items-center gap-2">
                     <Trophy className="w-4 h-4 text-malandro-red" /> Mis Torneos
                   </Link>
                   <Link href="#pedidos" onClick={() => setIsOpen(false)} className="text-malandro-gray font-medium p-2 hover:bg-white/5 hover:text-white rounded-lg flex items-center gap-2">
