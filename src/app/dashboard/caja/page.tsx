@@ -19,6 +19,8 @@ export default function CajaPage() {
   const [arqueoActual, setArqueoActual] = useState<any>(null);
   const [movimientos, setMovimientos] = useState<any[]>([]);
   const [totalIngresos, setTotalIngresos] = useState(0);
+  const [totalEfectivo, setTotalEfectivo] = useState(0);
+  const [totalQr, setTotalQr] = useState(0);
   const [totalEgresos, setTotalEgresos] = useState(0);
 
   // Modales
@@ -101,7 +103,16 @@ export default function CajaPage() {
 
         const movs = movsData || [];
         setMovimientos(movs);
-        setTotalIngresos(movs.filter((m: any) => m.tipo === 'ingreso' || m.tipo === 'apertura').reduce((s: number, m: any) => s + Number(m.monto), 0));
+        const ingresos = movs.filter((m: any) => m.tipo === 'ingreso' || m.tipo === 'apertura');
+        setTotalIngresos(ingresos.reduce((s: number, m: any) => s + Number(m.monto), 0));
+        
+        // Desglose de ingresos
+        const efectivo = ingresos.filter((m: any) => !m.descripcion?.includes('(QR)')).reduce((s: number, m: any) => s + Number(m.monto), 0);
+        const qr = ingresos.filter((m: any) => m.descripcion?.includes('(QR)')).reduce((s: number, m: any) => s + Number(m.monto), 0);
+        
+        setTotalEfectivo(efectivo);
+        setTotalQr(qr);
+
         setTotalEgresos(movs.filter((m: any) => m.tipo === 'egreso').reduce((s: number, m: any) => s + Number(m.monto), 0));
       }
     } catch (err: any) {
@@ -207,8 +218,26 @@ export default function CajaPage() {
       {/* Resumen Rápido */}
       {cajaAbierta && (
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-            <div className="flex items-center gap-3"><div className="p-2.5 bg-green-500/10 rounded-xl"><ArrowUpRight className="w-5 h-5 text-green-500" /></div><div><p className="text-xs text-malandro-gray">Total Ingresos</p><p className="text-2xl font-black text-green-400">Bs. {totalIngresos.toFixed(2)}</p></div></div>
+          {/* Tarjeta de Ingresos con Desglose */}
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl p-6 flex items-start gap-4 transition-all hover:border-[#3a3a3c]">
+            <div className="p-3 bg-green-500/10 rounded-xl mt-1">
+              <ArrowUpRight className="w-6 h-6 text-green-500" />
+            </div>
+            <div className="flex-1">
+              <p className="text-sm font-medium text-malandro-gray mb-1">Total Ingresos</p>
+              <h3 className="text-3xl font-black text-green-500 tracking-tight">Bs. {totalIngresos.toFixed(2)}</h3>
+              
+              <div className="mt-4 pt-4 border-t border-[#2a2a2c] flex justify-between">
+                <div>
+                  <p className="text-xs text-malandro-gray">Efectivo</p>
+                  <p className="text-sm font-bold text-white">Bs. {totalEfectivo.toFixed(2)}</p>
+                </div>
+                <div className="text-right">
+                  <p className="text-xs text-malandro-gray">QR / Transf.</p>
+                  <p className="text-sm font-bold text-white">Bs. {totalQr.toFixed(2)}</p>
+                </div>
+              </div>
+            </div>
           </div>
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
             <div className="flex items-center gap-3"><div className="p-2.5 bg-red-500/10 rounded-xl"><ArrowDownRight className="w-5 h-5 text-red-400" /></div><div><p className="text-xs text-malandro-gray">Total Egresos</p><p className="text-2xl font-black text-red-400">Bs. {totalEgresos.toFixed(2)}</p></div></div>

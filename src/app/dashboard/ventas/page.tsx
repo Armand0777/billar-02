@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import {
   Receipt, Search, Eye, XCircle, RefreshCw, Calendar,
   Banknote, TrendingUp, ShoppingBag, AlertTriangle, X, CreditCard,
-  Plus
+  Plus, Lock
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import VentaDirectaPOS from "@/components/VentaDirectaPOS";
@@ -25,6 +25,7 @@ export default function VentasPage() {
   const [dbError, setDbError] = useState("");
   const [ventas, setVentas] = useState<VentaRow[]>([]);
   const [isDirectPOSOpen, setIsDirectPOSOpen] = useState(false);
+  const [cajaAbierta, setCajaAbierta] = useState(true);
 
   // Filtros
   const [fechaDesde, setFechaDesde] = useState("");
@@ -44,6 +45,25 @@ export default function VentasPage() {
     setLoading(true);
     setDbError("");
     try {
+      // 1. Obtener sucursal actual para revisar la caja
+      const { data: sucursales } = await supabase.from("sucursales").select("id_sucursal");
+      const sucursalId = sucursales?.[0]?.id_sucursal || "";
+
+      // 2. Verificar Caja Abierta
+      const { data: cajas } = await supabase.from("cajas").select("id_caja").eq("id_sucursal", sucursalId).eq("activo", true).limit(1).maybeSingle();
+      if (cajas) {
+        const { data: lastArqueo } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "apertura").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (lastArqueo) {
+          const { data: cierrePost } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "cierre").gt("created_at", lastArqueo.created_at).limit(1).maybeSingle();
+          setCajaAbierta(!cierrePost);
+        } else {
+          setCajaAbierta(false);
+        }
+      } else {
+        setCajaAbierta(false);
+      }
+
+      // 3. Cargar ventas
       let query = supabase
         .from("ventas")
         .select(`
@@ -112,6 +132,23 @@ export default function VentasPage() {
 
   if (loading) {
     return (<div className="flex flex-col items-center justify-center py-24 text-malandro-gray"><RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" /><p className="text-sm">Cargando historial de ventas...</p></div>);
+  }
+
+  if (!cajaAbierta) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in duration-500">
+        <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+          <Lock className="w-12 h-12 text-malandro-red" />
+        </div>
+        <h2 className="text-3xl font-black text-white mb-3">Caja Cerrada</h2>
+        <p className="text-malandro-gray text-center max-w-md mb-8">
+          Por razones de seguridad, no puedes acceder al módulo de ventas ni cobrar productos hasta que inicies tu turno y abras la caja.
+        </p>
+        <a href="/dashboard/caja" className="px-8 py-3 bg-malandro-red hover:bg-malandro-red-dark text-white font-bold rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(211,47,47,0.4)] transition-all">
+          Ir a Abrir Caja
+        </a>
+      </div>
+    );
   }
 
   return (

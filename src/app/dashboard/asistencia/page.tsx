@@ -91,6 +91,13 @@ export default function AsistenciaPage() {
         observaciones: "Entrada regular"
       });
       
+      // Notificación al admin
+      await supabase.from("notificaciones").insert({
+        titulo: "Inicio de Turno",
+        mensaje: `${currentUser.nombre} ha marcado su ENTRADA y ha iniciado su turno.`,
+        tipo: "info"
+      });
+
       await loadData();
     } catch (err: any) {
       alert("Error marcando entrada: " + err.message);
@@ -112,6 +119,13 @@ export default function AsistenciaPage() {
         horas_trabajadas: Number(horasTrabajadas.toFixed(2))
       }).eq("id_asistencia", asistenciaActual.id_asistencia);
       
+      // Notificación al admin
+      await supabase.from("notificaciones").insert({
+        titulo: "Fin de Turno",
+        mensaje: `${currentUser.nombre} ha marcado su SALIDA. Horas trabajadas: ${horasTrabajadas.toFixed(2)} horas.`,
+        tipo: "warning"
+      });
+
       await loadData();
     } catch (err: any) {
       alert("Error marcando salida: " + err.message);

@@ -5,7 +5,7 @@ import {
   CircleDot, Play, Square, Timer, PlusCircle, AlertCircle, 
   HelpCircle, RefreshCw, Layers, Banknote, User, Clock, Check,
   X, Plus, Minus, ShoppingCart, Tag, Coffee, Settings, Edit2, 
-  Archive, Power, Printer
+  Archive, Power, Printer, Lock
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import { printReceipt } from "@/utils/printReceipt";
@@ -53,7 +53,7 @@ interface Categoria {
 }
 
 interface VentaItem {
-  id_item: string;
+  id_venta_item: string;
   id_producto: string;
   producto?: Producto;
   cantidad: number;
@@ -81,6 +81,7 @@ export default function MesasPage() {
   
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeSucursalId, setActiveSucursalId] = useState<string>("");
+  const [cajaAbierta, setCajaAbierta] = useState(true);
 
   // CRUD Mesas
   const [isManagingMesas, setIsManagingMesas] = useState(false);
@@ -105,7 +106,7 @@ export default function MesasPage() {
   const [activeCategory, setActiveCategory] = useState<string>('all');
   
   const [isClosingSession, setIsClosingSession] = useState(false);
-  const [metodoPago, setMetodoPago] = useState<'efectivo' | 'tarjeta' | 'qr'>('efectivo');
+  const [metodoPago, setMetodoPago] = useState<'efectivo' | 'qr'>('efectivo');
 
   const [currentTime, setCurrentTime] = useState(new Date());
   const supabase = createClient();
@@ -142,6 +143,20 @@ export default function MesasPage() {
       
       // Mesas (Activas para Grid)
       setMesas((mesasAll || []).filter(m => m.activo));
+
+      // Verificar si la caja está abierta
+      const { data: cajas } = await supabase.from("cajas").select("id_caja").eq("id_sucursal", sucursalId).eq("activo", true).limit(1).maybeSingle();
+      if (cajas) {
+        const { data: lastArqueo } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "apertura").order("created_at", { ascending: false }).limit(1).maybeSingle();
+        if (lastArqueo) {
+          const { data: cierrePost } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "cierre").gt("created_at", lastArqueo.created_at).limit(1).maybeSingle();
+          setCajaAbierta(!cierrePost);
+        } else {
+          setCajaAbierta(false);
+        }
+      } else {
+        setCajaAbierta(false);
+      }
 
       // Tarifas y Configuración
       const { data: tarifasData } = await supabase.from("tarifas").select("*").eq("activo", true);
@@ -313,7 +328,7 @@ export default function MesasPage() {
       const { data: updatedItem } = await supabase
         .from("venta_items")
         .update({ cantidad: newCant })
-        .eq("id_item", existingItem.id_item)
+        .eq("id_venta_item", existingItem.id_venta_item)
         .select("*, producto:productos(*)")
         .single();
 
@@ -321,7 +336,7 @@ export default function MesasPage() {
         setPosVenta({
           ...posVenta,
           id_venta: currentVentaId as string,
-          items: posVenta.items.map(i => i.id_item === existingItem.id_item ? updatedItem : i)
+          items: posVenta.items.map(i => i.id_venta_item === existingItem.id_venta_item ? updatedItem : i)
         });
       }
     } else {
@@ -353,22 +368,22 @@ export default function MesasPage() {
       const newSubtotal = newCant * item.precio_unitario;
       const { data: updatedItem } = await supabase
         .from("venta_items")
-        .update({ cantidad: newCant, subtotal: newSubtotal })
-        .eq("id_item", item.id_item)
+        .update({ cantidad: newCant })
+        .eq("id_venta_item", item.id_venta_item)
         .select("*, producto:productos(*)")
         .single();
 
       if (updatedItem) {
         setPosVenta({
           ...posVenta,
-          items: posVenta.items.map(i => i.id_item === item.id_item ? updatedItem : i)
+          items: posVenta.items.map(i => i.id_venta_item === item.id_venta_item ? updatedItem : i)
         });
       }
     } else {
-      await supabase.from("venta_items").delete().eq("id_item", item.id_item);
+      await supabase.from("venta_items").delete().eq("id_venta_item", item.id_venta_item);
       setPosVenta({
         ...posVenta,
-        items: posVenta.items.filter(i => i.id_item !== item.id_item)
+        items: posVenta.items.filter(i => i.id_venta_item !== item.id_venta_item)
       });
     }
   };
@@ -499,7 +514,24 @@ export default function MesasPage() {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-malandro-gray">
         <RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" />
-        <p className="text-sm">Conectando con Supabase y cargando mesas...</p>
+        <p className="text-sm">Cargando mesas y estado del salón...</p>
+      </div>
+    );
+  }
+
+  if (!cajaAbierta) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in duration-500">
+        <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
+          <Lock className="w-12 h-12 text-malandro-red" />
+        </div>
+        <h2 className="text-3xl font-black text-white mb-3">Caja Cerrada</h2>
+        <p className="text-malandro-gray text-center max-w-md mb-8">
+          Por razones de seguridad, no puedes interactuar con las mesas ni realizar ventas hasta que inicies tu turno y abras la caja.
+        </p>
+        <a href="/dashboard/caja" className="px-8 py-3 bg-malandro-red hover:bg-malandro-red-dark text-white font-bold rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(211,47,47,0.4)] transition-all">
+          Ir a Abrir Caja
+        </a>
       </div>
     );
   }
@@ -768,7 +800,7 @@ export default function MesasPage() {
 
                 {/* Items de Productos */}
                 {posVenta?.items.map((item) => (
-                  <div key={item.id_item} className="bg-black/30 border border-[#2a2a2c] p-3 rounded-xl flex items-center justify-between group">
+                  <div key={item.id_venta_item} className="bg-black/30 border border-[#2a2a2c] p-3 rounded-xl flex items-center justify-between group">
                     <div className="flex items-center gap-3 flex-1">
                       <div className="flex flex-col items-center gap-1 bg-[#1a1a1c] border border-[#2a2a2c] rounded-lg overflow-hidden shrink-0">
                         <button onClick={() => handleAddProduct(item.producto as Producto)} className="p-1 hover:bg-[#2a2a2c] text-white w-full flex justify-center"><Plus className="w-3 h-3" /></button>
@@ -855,8 +887,8 @@ export default function MesasPage() {
               </div>
               <div className="space-y-3">
                 <label className="text-sm font-medium text-malandro-gray block text-center">Método de Pago</label>
-                <div className="grid grid-cols-3 gap-3">
-                  {(['efectivo', 'tarjeta', 'qr'] as const).map((metodo) => (
+                <div className="grid grid-cols-2 gap-3">
+                  {(['efectivo', 'qr'] as const).map((metodo) => (
                     <button key={metodo} onClick={() => setMetodoPago(metodo)} className={`p-4 border rounded-xl flex flex-col items-center gap-2 transition-all ${metodoPago === metodo ? "border-malandro-red bg-malandro-red/20 text-white" : "border-[#2a2a2c] bg-black/40 text-malandro-gray hover:text-white hover:bg-[#2a2a2c]"}`}>
                       <Banknote className="w-6 h-6" />
                       <span className="text-xs font-bold capitalize">{metodo}</span>
