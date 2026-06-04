@@ -14,7 +14,7 @@ interface Mesa {
   id_mesa: string;
   numero: number;
   nombre: string | null;
-  tipo: 'pool' | 'snooker' | 'americana' | 'carambola';
+  tipo: 'pool' | 'snooker' | 'americana' | 'carambola' | 'cacho';
   activo: boolean;
   id_sucursal?: string;
 }

@@ -60,7 +60,7 @@ export type Database = {
           id_sucursal: string
           numero: number
           nombre: string | null
-          tipo: 'pool' | 'snooker' | 'americana' | 'carambola'
+          tipo: 'pool' | 'snooker' | 'americana' | 'carambola' | 'cacho'
           activo: boolean
           created_at: string
           updated_at: string
