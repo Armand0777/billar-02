@@ -83,19 +83,19 @@ export default function SucursalesPage() {
   };
 
   if (loading) {
-    return (<div className="flex flex-col items-center justify-center py-24 text-malandro-gray"><RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" /><p className="text-sm">Cargando sucursales...</p></div>);
+    return (<div className="flex flex-col items-center justify-center py-24 text-billanga-gray"><RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" /><p className="text-sm">Cargando sucursales...</p></div>);
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Building2 className="w-7 h-7 text-malandro-red" /> Gestión de Sucursales</h2>
-          <p className="text-sm text-malandro-gray">Administra las ubicaciones físicas de tu negocio.</p>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Building2 className="w-7 h-7 text-billanga-primary" /> Gestión de Sucursales</h2>
+          <p className="text-sm text-billanga-gray">Administra las ubicaciones físicas de tu negocio.</p>
         </div>
         <div className="flex gap-2">
           <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
-          <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-malandro-red hover:bg-malandro-red-dark text-white rounded-lg text-sm font-bold transition-all"><PlusCircle className="w-4 h-4" /> Nueva Sucursal</button>
+          <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-lg text-sm font-bold transition-all"><PlusCircle className="w-4 h-4" /> Nueva Sucursal</button>
         </div>
       </div>
 
@@ -113,22 +113,22 @@ export default function SucursalesPage() {
                 </div>
               </div>
               <div className="flex gap-1">
-                <button onClick={() => handleToggleActivo(suc)} className="p-1.5 hover:bg-[#2a2a2c] rounded-lg text-malandro-gray transition-all" title={suc.activo ? "Desactivar" : "Activar"}>
+                <button onClick={() => handleToggleActivo(suc)} className="p-1.5 hover:bg-[#2a2a2c] rounded-lg text-billanga-gray transition-all" title={suc.activo ? "Desactivar" : "Activar"}>
                   <AlertTriangle className="w-4 h-4" />
                 </button>
-                <button onClick={() => handleOpenEdit(suc)} className="p-1.5 hover:bg-[#2a2a2c] rounded-lg text-malandro-gray transition-all">
+                <button onClick={() => handleOpenEdit(suc)} className="p-1.5 hover:bg-[#2a2a2c] rounded-lg text-billanga-gray transition-all">
                   <Edit3 className="w-4 h-4" />
                 </button>
               </div>
             </div>
             <div className="mt-6 space-y-3 relative z-20">
               <div className="flex items-start gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-malandro-gray shrink-0 mt-0.5" />
-                <span className="text-malandro-gray">{suc.direccion || "Sin dirección registrada"}</span>
+                <MapPin className="w-4 h-4 text-billanga-gray shrink-0 mt-0.5" />
+                <span className="text-billanga-gray">{suc.direccion || "Sin dirección registrada"}</span>
               </div>
               <div className="flex items-center gap-3 text-sm">
-                <Phone className="w-4 h-4 text-malandro-gray shrink-0" />
-                <span className="text-malandro-gray">{suc.telefono || "Sin teléfono"}</span>
+                <Phone className="w-4 h-4 text-billanga-gray shrink-0" />
+                <span className="text-billanga-gray">{suc.telefono || "Sin teléfono"}</span>
               </div>
             </div>
           </div>
@@ -139,15 +139,15 @@ export default function SucursalesPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center"><h3 className="font-bold text-lg text-white">{editingSucursal ? "Editar Sucursal" : "Nueva Sucursal"}</h3><button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-malandro-gray"><X className="w-5 h-5" /></button></div>
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center"><h3 className="font-bold text-lg text-white">{editingSucursal ? "Editar Sucursal" : "Nueva Sucursal"}</h3><button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button></div>
             <div className="p-6 space-y-4">
-              <div><label className="text-sm font-medium text-malandro-gray block mb-1">Nombre de Sucursal *</label><input type="text" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Sede Norte" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-malandro-red" /></div>
-              <div><label className="text-sm font-medium text-malandro-gray block mb-1">Dirección</label><textarea rows={2} value={formData.direccion} onChange={e => setFormData({ ...formData, direccion: e.target.value })} placeholder="Calle..." className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white placeholder:text-malandro-gray/50 focus:outline-none focus:border-malandro-red text-sm" /></div>
-              <div><label className="text-sm font-medium text-malandro-gray block mb-1">Teléfono</label><input type="text" value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} placeholder="Ej: 555-1234" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-malandro-red" /></div>
+              <div><label className="text-sm font-medium text-billanga-gray block mb-1">Nombre de Sucursal *</label><input type="text" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Sede Norte" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
+              <div><label className="text-sm font-medium text-billanga-gray block mb-1">Dirección</label><textarea rows={2} value={formData.direccion} onChange={e => setFormData({ ...formData, direccion: e.target.value })} placeholder="Calle..." className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white placeholder:text-billanga-gray/50 focus:outline-none focus:border-billanga-primary text-sm" /></div>
+              <div><label className="text-sm font-medium text-billanga-gray block mb-1">Teléfono</label><input type="text" value={formData.telefono} onChange={e => setFormData({ ...formData, telefono: e.target.value })} placeholder="Ej: 555-1234" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
             </div>
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
               <button onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
-              <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-malandro-red hover:bg-malandro-red-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {editingSucursal ? "Guardar" : "Crear"}</button>
+              <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {editingSucursal ? "Guardar" : "Crear"}</button>
             </div>
           </div>
         </div>

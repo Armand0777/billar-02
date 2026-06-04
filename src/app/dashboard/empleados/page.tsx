@@ -138,15 +138,15 @@ export default function EmpleadosPage() {
   const activosCount = empleados.filter(e => e.activo).length;
 
   if (loading) {
-    return (<div className="flex flex-col items-center justify-center py-24 text-malandro-gray"><RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" /><p className="text-sm">Cargando empleados...</p></div>);
+    return (<div className="flex flex-col items-center justify-center py-24 text-billanga-gray"><RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" /><p className="text-sm">Cargando empleados...</p></div>);
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Users className="w-7 h-7 text-malandro-red" /> Gestión de Empleados</h2>
-          <p className="text-sm text-malandro-gray">Administra el personal, sus roles y accesos al sistema.</p>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Users className="w-7 h-7 text-billanga-primary" /> Gestión de Empleados</h2>
+          <p className="text-sm text-billanga-gray">Administra el personal, sus roles y accesos al sistema.</p>
         </div>
         <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
       </div>
@@ -156,30 +156,30 @@ export default function EmpleadosPage() {
       {/* Resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-2.5 bg-malandro-red/10 rounded-xl"><Users className="w-5 h-5 text-malandro-red" /></div><div><p className="text-xs text-malandro-gray">Empleados Activos</p><p className="text-2xl font-black text-white">{activosCount} <span className="text-sm font-normal text-malandro-gray">/ {empleados.length}</span></p></div></div>
+          <div className="flex items-center gap-3"><div className="p-2.5 bg-billanga-primary/10 rounded-xl"><Users className="w-5 h-5 text-billanga-primary" /></div><div><p className="text-xs text-billanga-gray">Empleados Activos</p><p className="text-2xl font-black text-white">{activosCount} <span className="text-sm font-normal text-billanga-gray">/ {empleados.length}</span></p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-2.5 bg-blue-500/10 rounded-xl"><Shield className="w-5 h-5 text-blue-400" /></div><div><p className="text-xs text-malandro-gray">Roles Configurables</p><p className="text-2xl font-black text-white">{roles.length}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-2.5 bg-blue-500/10 rounded-xl"><Shield className="w-5 h-5 text-blue-400" /></div><div><p className="text-xs text-billanga-gray">Roles Configurables</p><p className="text-2xl font-black text-white">{roles.length}</p></div></div>
         </div>
       </div>
 
       {/* Filtros */}
       <div className="bg-[#1a1a1c] border border-[#2a2a2c] p-4 rounded-xl flex flex-wrap gap-4 items-center justify-between">
         <div className="flex gap-4 items-center flex-1">
-          <div className="relative w-full max-w-xs"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-malandro-gray/50" /><input type="text" placeholder="Buscar por nombre o email..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-malandro-red" /></div>
-          <select value={selectedRol} onChange={e => setSelectedRol(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-malandro-red">
+          <div className="relative w-full max-w-xs"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-billanga-gray/50" /><input type="text" placeholder="Buscar por nombre o email..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2 pl-10 pr-4 text-sm text-white focus:outline-none focus:border-billanga-primary" /></div>
+          <select value={selectedRol} onChange={e => setSelectedRol(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-billanga-primary">
             <option value="all">Todos los Roles</option>
             {roles.map(r => (<option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>))}
           </select>
         </div>
-        <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-malandro-red hover:bg-malandro-red-dark text-white rounded-lg text-sm font-bold transition-all whitespace-nowrap"><UserPlus className="w-4 h-4" /> Nuevo Empleado</button>
+        <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-lg text-sm font-bold transition-all whitespace-nowrap"><UserPlus className="w-4 h-4" /> Nuevo Empleado</button>
       </div>
 
       {/* Tabla */}
       <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead><tr className="border-b border-[#2a2a2c] text-xs font-bold text-malandro-gray tracking-wider uppercase bg-[#141416]/50">
+            <thead><tr className="border-b border-[#2a2a2c] text-xs font-bold text-billanga-gray tracking-wider uppercase bg-[#141416]/50">
               <th className="py-4 pl-6">Empleado</th><th className="py-4">Rol / Nivel</th><th className="py-4 text-center">Estado</th><th className="py-4">Ingreso</th><th className="py-4 pr-6 text-center">Acciones</th>
             </tr></thead>
             <tbody>
@@ -190,32 +190,32 @@ export default function EmpleadosPage() {
                       {emp.avatar_url ? (
                         <img src={emp.avatar_url} alt="Avatar" className="w-8 h-8 rounded-full object-cover border border-[#2a2a2c]" />
                       ) : (
-                        <div className="w-8 h-8 rounded-full bg-malandro-red/20 text-malandro-red flex items-center justify-center font-bold text-xs border border-malandro-red/30">
+                        <div className="w-8 h-8 rounded-full bg-billanga-primary/20 text-billanga-primary flex items-center justify-center font-bold text-xs border border-billanga-primary/30">
                           {emp.nombre.charAt(0).toUpperCase()}
                         </div>
                       )}
                       <div>
                         <div className="font-bold">{emp.nombre}</div>
-                        <div className="text-xs text-malandro-gray flex items-center gap-1 mt-0.5"><Mail className="w-3 h-3" /> {emp.email}</div>
+                        <div className="text-xs text-billanga-gray flex items-center gap-1 mt-0.5"><Mail className="w-3 h-3" /> {emp.email}</div>
                       </div>
                     </div>
                   </td>
                   <td className="py-3">
                     <div className="capitalize">{emp.roles?.nombre || "—"}</div>
-                    <div className="text-[10px] text-malandro-gray">Nivel: {emp.roles?.nivel || 0}</div>
+                    <div className="text-[10px] text-billanga-gray">Nivel: {emp.roles?.nivel || 0}</div>
                   </td>
                   <td className="py-3 text-center">
                     <button onClick={() => handleToggleActivo(emp)} className={`px-2.5 py-1 rounded-full text-[10px] font-bold tracking-wide uppercase transition-all ${emp.activo ? "bg-green-500/10 text-green-500 hover:bg-green-500/20" : "bg-red-500/10 text-red-400 hover:bg-red-500/20"}`}>
                       {emp.activo ? "Activo" : "Inactivo"}
                     </button>
                   </td>
-                  <td className="py-3 text-xs text-malandro-gray">{new Date(emp.created_at).toLocaleDateString("es-BO")}</td>
+                  <td className="py-3 text-xs text-billanga-gray">{new Date(emp.created_at).toLocaleDateString("es-BO")}</td>
                   <td className="py-3 pr-6 text-center">
-                    <button onClick={() => handleOpenEdit(emp)} className="px-3 py-1.5 bg-[#2a2a2c] hover:bg-malandro-red hover:text-white rounded-lg text-xs font-bold transition-all text-malandro-gray inline-flex items-center gap-1"><Edit3 className="w-3 h-3" /> Editar</button>
+                    <button onClick={() => handleOpenEdit(emp)} className="px-3 py-1.5 bg-[#2a2a2c] hover:bg-billanga-primary hover:text-white rounded-lg text-xs font-bold transition-all text-billanga-gray inline-flex items-center gap-1"><Edit3 className="w-3 h-3" /> Editar</button>
                   </td>
                 </tr>
               )) : (
-                <tr><td colSpan={5} className="py-12 text-center text-malandro-gray text-sm">No se encontraron empleados.</td></tr>
+                <tr><td colSpan={5} className="py-12 text-center text-billanga-gray text-sm">No se encontraron empleados.</td></tr>
               )}
             </tbody>
           </table>
@@ -226,7 +226,7 @@ export default function EmpleadosPage() {
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center"><h3 className="font-bold text-lg text-white">{editingEmpleado ? "Editar Empleado" : "Nuevo Empleado"}</h3><button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-malandro-gray"><X className="w-5 h-5" /></button></div>
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center"><h3 className="font-bold text-lg text-white">{editingEmpleado ? "Editar Empleado" : "Nuevo Empleado"}</h3><button onClick={() => setIsModalOpen(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button></div>
             <div className="p-6 space-y-4">
               {!editingEmpleado && (
                 <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-xs text-blue-400 flex gap-2">
@@ -235,7 +235,7 @@ export default function EmpleadosPage() {
                 </div>
               )}
               <div>
-                <label className="text-sm font-medium text-malandro-gray block mb-1">Foto de Perfil (Opcional)</label>
+                <label className="text-sm font-medium text-billanga-gray block mb-1">Foto de Perfil (Opcional)</label>
                 <div className="w-48 mx-auto">
                   <ImageUploader 
                     value={formData.avatar_url} 
@@ -244,18 +244,18 @@ export default function EmpleadosPage() {
                   />
                 </div>
               </div>
-              <div><label className="text-sm font-medium text-malandro-gray block mb-1">Nombre Completo *</label><input type="text" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Juan Pérez" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-malandro-red" /></div>
-              <div><label className="text-sm font-medium text-malandro-gray block mb-1">Email *</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="juan@ejemplo.com" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-malandro-red" /></div>
+              <div><label className="text-sm font-medium text-billanga-gray block mb-1">Nombre Completo *</label><input type="text" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Juan Pérez" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
+              <div><label className="text-sm font-medium text-billanga-gray block mb-1">Email *</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="juan@ejemplo.com" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
               <div>
-                <label className="text-sm font-medium text-malandro-gray block mb-1">Rol *</label>
-                <select value={formData.id_rol} onChange={e => setFormData({ ...formData, id_rol: e.target.value })} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-malandro-red capitalize">
+                <label className="text-sm font-medium text-billanga-gray block mb-1">Rol *</label>
+                <select value={formData.id_rol} onChange={e => setFormData({ ...formData, id_rol: e.target.value })} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary capitalize">
                   {roles.map(r => (<option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>))}
                 </select>
               </div>
             </div>
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
               <button onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
-              <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-malandro-red hover:bg-malandro-red-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {editingEmpleado ? "Guardar" : "Crear"}</button>
+              <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {editingEmpleado ? "Guardar" : "Crear"}</button>
             </div>
           </div>
         </div>

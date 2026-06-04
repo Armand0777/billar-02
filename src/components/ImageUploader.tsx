@@ -3,6 +3,7 @@
 import { useState, useRef } from "react";
 import { UploadCloud, X, Loader2, Image as ImageIcon } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import imageCompression from "browser-image-compression";
 
 interface ImageUploaderProps {
   value?: string;
@@ -48,25 +49,36 @@ export default function ImageUploader({ value, onChange, folder = "general" }: I
 
     setIsUploading(true);
     try {
+      // Opciones de compresión para asegurar bajo peso
+      const options = {
+        maxSizeMB: 0.5, // 500 KB como máximo
+        maxWidthOrHeight: 1280, // Resolución HD razonable
+        useWebWorker: true,
+      };
+
+      const compressedFile = await imageCompression(file, options);
+
       // Generar nombre de archivo único
-      const fileExt = file.name.split(".").pop();
+      const fileExt = compressedFile.name.split(".").pop() || "jpg";
       const fileName = `${folder}/${Math.random().toString(36).substring(2, 15)}_${Date.now()}.${fileExt}`;
 
       const { error: uploadError } = await supabase.storage
         .from("public_images")
-        .upload(fileName, file, {
+        .upload(fileName, compressedFile, {
           cacheControl: "3600",
           upsert: false,
         });
 
       if (uploadError) throw uploadError;
 
-      // Obtener URL pública
+      // Obtener URL pública directa de Supabase
       const { data: { publicUrl } } = supabase.storage
         .from("public_images")
         .getPublicUrl(fileName);
 
-      onChange(publicUrl);
+      // IMPORTANTE: Envolvemos la URL en el proxy para evadir el bloqueo de Entel
+      const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(publicUrl)}`;
+      onChange(proxyUrl);
     } catch (error: any) {
       console.error("Error subiendo imagen:", error);
       alert("Hubo un error al subir la imagen. Verifica tu conexión y los permisos.");

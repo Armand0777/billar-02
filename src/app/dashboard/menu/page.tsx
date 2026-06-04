@@ -13,8 +13,8 @@ export default function MenuPage() {
   }, [router]);
 
   return (
-    <div className="flex flex-col items-center justify-center py-24 text-malandro-gray">
-      <RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" />
+    <div className="flex flex-col items-center justify-center py-24 text-billanga-gray">
+      <RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" />
       <p className="text-sm">Redirigiendo al Inventario & Productos...</p>
     </div>
   );

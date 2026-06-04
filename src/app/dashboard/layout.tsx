@@ -19,7 +19,7 @@ interface UserProfile {
   avatarUrl?: string;
 }
 
-const PROFILE_CACHE_KEY = "malandro_staff_profile";
+const PROFILE_CACHE_KEY = "billanga_staff_profile";
 
 function getCachedProfile(): UserProfile | null {
   try {
@@ -177,10 +177,10 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       <div className="flex h-screen bg-[#121212] items-center justify-center text-white">
         <div className="flex flex-col items-center gap-4">
           <div className="relative w-16 h-16">
-            <div className="absolute inset-0 rounded-full border-4 border-t-malandro-red border-r-transparent border-b-transparent border-l-transparent animate-spin duration-1000"></div>
+            <div className="absolute inset-0 rounded-full border-4 border-t-billanga-primary border-r-transparent border-b-transparent border-l-transparent animate-spin duration-1000"></div>
             <div className="absolute inset-0 rounded-full border-4 border-white/5"></div>
           </div>
-          <p className="text-xs font-semibold tracking-widest text-malandro-gray animate-pulse">
+          <p className="text-xs font-semibold tracking-widest text-billanga-gray animate-pulse">
             CARGANDO DATOS DEL PERSONAL...
           </p>
         </div>
@@ -207,20 +207,20 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         {/* Sidebar Header */}
         <div className="h-20 px-6 flex items-center justify-between border-b border-[#2a2a2c] shrink-0">
           <Link href="/dashboard" className="flex items-center gap-2.5">
-            <div className="w-9 h-9 rounded-xl bg-malandro-red flex items-center justify-center font-black text-xl italic text-white shadow-lg shadow-malandro-red/20 transform -rotate-3 hover:rotate-0 transition-transform duration-300">
-              M
+            <div className="relative w-10 h-10">
+              <img src="/logo_transparente.png" alt="Logo La Billanga" className="w-full h-full object-contain drop-shadow-md" />
             </div>
             <div className="flex flex-col">
-              <span className="font-extrabold text-sm tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-malandro-gray">
-                EL MALANDRO
+              <span className="font-extrabold text-sm tracking-wider uppercase bg-clip-text text-transparent bg-gradient-to-r from-white via-white to-billanga-gray">
+                LA BILLANGA
               </span>
-              <span className="text-[10px] text-malandro-red font-semibold tracking-widest -mt-0.5">
+              <span className="text-[10px] text-billanga-primary font-semibold tracking-widest -mt-0.5">
                 STAFF HUB
               </span>
             </div>
           </Link>
           <button 
-            className="p-1 text-malandro-gray hover:text-white md:hidden hover:bg-[#2a2a2c] rounded-lg transition-colors"
+            className="p-1 text-billanga-gray hover:text-white md:hidden hover:bg-[#2a2a2c] rounded-lg transition-colors"
             onClick={() => setIsMobileMenuOpen(false)}
           >
             <X className="w-6 h-6" />
@@ -240,8 +240,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     onClick={() => setIsMobileMenuOpen(false)} 
                     className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all ${
                       isActive 
-                        ? "bg-malandro-red/10 text-malandro-red border border-malandro-red/20 shadow-sm" 
-                        : "text-malandro-gray hover:text-white hover:bg-[#2a2a2c]"
+                        ? "bg-billanga-primary/10 text-billanga-primary border border-billanga-primary/20 shadow-sm" 
+                        : "text-billanga-gray hover:text-white hover:bg-[#2a2a2c]"
                     }`}
                   >
                     <Icon className="w-5 h-5 shrink-0" />
@@ -257,8 +257,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                 onClick={() => setIsMobileMenuOpen(false)} 
                 className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all ${
                   pathname === "/dashboard/perfil" 
-                    ? "bg-malandro-red/10 text-malandro-red border border-malandro-red/20" 
-                    : "text-malandro-gray hover:text-white hover:bg-[#2a2a2c]"
+                    ? "bg-billanga-primary/10 text-billanga-primary border border-billanga-primary/20" 
+                    : "text-billanga-gray hover:text-white hover:bg-[#2a2a2c]"
                 }`}
               >
                 <UserCircle className="w-5 h-5" />
@@ -273,8 +273,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                   onClick={() => setIsMobileMenuOpen(false)} 
                   className={`flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium transition-all ${
                     pathname === "/dashboard/configuracion" 
-                      ? "bg-malandro-red/10 text-malandro-red border border-malandro-red/20" 
-                      : "text-malandro-gray hover:text-white hover:bg-[#2a2a2c]"
+                      ? "bg-billanga-primary/10 text-billanga-primary border border-billanga-primary/20" 
+                      : "text-billanga-gray hover:text-white hover:bg-[#2a2a2c]"
                   }`}
                 >
                   <Settings className="w-5 h-5" />
@@ -286,9 +286,9 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <li className="pt-2 mt-2 border-t border-[#2a2a2c]/50">
               <Link 
                 href="/" 
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-malandro-gray hover:text-white hover:bg-[#2a2a2c] transition-all"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg font-medium text-billanga-gray hover:text-white hover:bg-[#2a2a2c] transition-all"
               >
-                <Store className="w-5 h-5 text-malandro-red" />
+                <Store className="w-5 h-5 text-billanga-primary" />
                 <span className="text-sm">Ver Tienda</span>
               </Link>
             </li>
@@ -299,21 +299,21 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <div className="p-4 border-t border-[#2a2a2c]">
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-3">
-              <div className="w-8 h-8 rounded-full bg-malandro-red flex items-center justify-center text-sm font-bold uppercase shadow-inner">
+              <div className="w-8 h-8 rounded-full bg-billanga-primary flex items-center justify-center text-sm font-bold uppercase shadow-inner">
                 {userProfile?.nombre.substring(0, 1) || "U"}
               </div>
               <div className="flex flex-col">
                 <span className="text-sm font-medium truncate max-w-[125px]">
                   {userProfile?.nombre || "Usuario"}
                 </span>
-                <span className="text-[10px] text-malandro-red font-bold uppercase tracking-wider">
+                <span className="text-[10px] text-billanga-primary font-bold uppercase tracking-wider">
                   {userProfile?.rolNombre}
                 </span>
               </div>
             </div>
             <button 
               onClick={handleSignOut}
-              className="p-2 hover:bg-[#2a2a2c] rounded-lg transition-colors text-malandro-gray hover:text-white active:scale-90"
+              className="p-2 hover:bg-[#2a2a2c] rounded-lg transition-colors text-billanga-gray hover:text-white active:scale-90"
               title="Cerrar Sesión"
             >
               <LogOut className="w-4 h-4" />
@@ -328,14 +328,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
         <header className="h-20 px-4 md:px-8 flex items-center justify-between border-b border-[#2a2a2c] bg-[#1a1a1c]/50 backdrop-blur-sm z-10 shrink-0">
           <div className="flex items-center gap-3">
             <button 
-              className="p-2 md:hidden text-malandro-gray hover:text-white hover:bg-[#2a2a2c] rounded-lg transition-colors"
+              className="p-2 md:hidden text-billanga-gray hover:text-white hover:bg-[#2a2a2c] rounded-lg transition-colors"
               onClick={() => setIsMobileMenuOpen(true)}
             >
               <Menu className="w-6 h-6" />
             </button>
             <div>
               <h1 className="text-xl md:text-2xl font-bold">{getHeaderTitle()}</h1>
-              <p className="text-xs md:text-sm text-malandro-gray capitalize hidden sm:block">
+              <p className="text-xs md:text-sm text-billanga-gray capitalize hidden sm:block">
                 {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
@@ -344,19 +344,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex items-center gap-3 md:gap-6">
             <Link 
               href="/" 
-              className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-malandro-gray hover:text-white transition-all text-xs md:text-sm font-semibold group"
+              className="flex items-center gap-2 px-3 py-1.5 md:px-4 md:py-2 rounded-full bg-white/5 hover:bg-white/10 border border-white/10 text-billanga-gray hover:text-white transition-all text-xs md:text-sm font-semibold group"
             >
-              <Eye className="w-4 h-4 md:w-5 md:h-5 text-malandro-red group-hover:scale-110 transition-transform" />
+              <Eye className="w-4 h-4 md:w-5 md:h-5 text-billanga-primary group-hover:scale-110 transition-transform" />
               <span className="hidden sm:inline">Ver Tienda</span>
             </Link>
 
             <NotificationBell />
             
             <div className="flex items-center gap-3">
-              <span className="text-sm text-malandro-gray hidden sm:inline">
+              <span className="text-sm text-billanga-gray hidden sm:inline">
                 Hola, <strong className="text-white">{userProfile?.nombre.split(" ")[0] || "Staff"}</strong>
               </span>
-              <div className="w-8 h-8 rounded-full bg-malandro-red flex items-center justify-center text-sm font-bold uppercase">
+              <div className="w-8 h-8 rounded-full bg-billanga-primary flex items-center justify-center text-sm font-bold uppercase">
                 {userProfile?.nombre.substring(0, 1) || "U"}
               </div>
             </div>
@@ -368,14 +368,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           <div className="flex-1 flex items-center justify-center p-6 md:p-8 bg-[#121212]">
             <div className="max-w-md w-full bg-[#1a1a1c] border border-white/10 rounded-2xl p-8 text-center shadow-2xl relative overflow-hidden group">
               {/* Subtle background red glow */}
-              <div className="absolute -top-12 -left-12 w-48 h-48 bg-malandro-red/10 rounded-full blur-3xl pointer-events-none group-hover:bg-malandro-red/20 transition-all duration-700" />
+              <div className="absolute -top-12 -left-12 w-48 h-48 bg-billanga-primary/10 rounded-full blur-3xl pointer-events-none group-hover:bg-billanga-primary/20 transition-all duration-700" />
               
-              <div className="w-16 h-16 bg-malandro-red/10 border border-malandro-red/20 text-malandro-red rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
+              <div className="w-16 h-16 bg-billanga-primary/10 border border-billanga-primary/20 text-billanga-primary rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-inner">
                 <ShieldAlert className="w-8 h-8" />
               </div>
               
               <h2 className="text-2xl font-bold text-white mb-3">Acceso Restringido</h2>
-              <p className="text-sm text-malandro-gray mb-6 leading-relaxed">
+              <p className="text-sm text-billanga-gray mb-6 leading-relaxed">
                 Este módulo requiere un nivel de autorización superior (**Nivel {matchedItem?.minLevel}**). Tu rol actual (**{userProfile?.rolNombre}**) posee **Nivel {userLevel}**.
               </p>
               
@@ -389,7 +389,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
                     router.push("/dashboard/mesas");
                   }
                 }}
-                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-malandro-red to-[#b81d24] hover:from-[#d32f2f] hover:to-malandro-red text-white text-sm font-semibold shadow-lg shadow-malandro-red/20 transition-all duration-300 transform active:scale-95"
+                className="w-full flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-billanga-primary to-[#b81d24] hover:from-[#d32f2f] hover:to-billanga-primary text-white text-sm font-semibold shadow-lg shadow-billanga-primary/20 transition-all duration-300 transform active:scale-95"
               >
                 <ArrowLeft className="w-4 h-4" />
                 Volver a mi sección segura

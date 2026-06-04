@@ -13,8 +13,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Billar El Malandro",
-  description: "Sistema de gestión y catálogo virtual para Billar El Malandro",
+  title: "Billanga",
+  description: "Sistema de gestión y catálogo virtual para Billanga",
 };
 
 export default function RootLayout({

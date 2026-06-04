@@ -78,7 +78,7 @@ export default function BottomDock() {
           {/* Left 1: Catálogo */}
           <button 
             onClick={() => scrollToSection("menu")} 
-            className="flex flex-col items-center gap-1.5 text-malandro-gray hover:text-white active:scale-95 transition-all flex-1"
+            className="flex flex-col items-center gap-1.5 text-billanga-gray hover:text-white active:scale-95 transition-all flex-1"
           >
             <LayoutGrid className="w-5 h-5" />
             <span className="text-[9px] font-semibold tracking-wide">Catálogo</span>
@@ -87,7 +87,7 @@ export default function BottomDock() {
           {/* Left 2: Mis Pedidos */}
           <button 
             onClick={() => setShowPedidosInfo(true)}
-            className="flex flex-col items-center gap-1.5 text-malandro-gray hover:text-white active:scale-95 transition-all flex-1 text-center"
+            className="flex flex-col items-center gap-1.5 text-billanga-gray hover:text-white active:scale-95 transition-all flex-1 text-center"
           >
             <Receipt className="w-5 h-5" />
             <span className="text-[9px] font-semibold tracking-wide">Mis Pedidos</span>
@@ -97,7 +97,7 @@ export default function BottomDock() {
           <div className="relative -mt-8 flex flex-col items-center flex-1 z-50">
             <button 
               onClick={scrollToTop}
-              className="w-14 h-14 rounded-full bg-gradient-to-br from-malandro-red to-malandro-red-dark text-white flex items-center justify-center shadow-[0_0_20px_rgba(211,47,47,0.5)] hover:shadow-[0_0_25px_rgba(211,47,47,0.7)] hover:scale-105 transition-all duration-300 border border-white/20 active:scale-95"
+              className="w-14 h-14 rounded-full bg-gradient-to-br from-billanga-primary to-billanga-primary-dark text-white flex items-center justify-center shadow-[0_0_20px_rgba(0,230,118,0.5)] hover:shadow-[0_0_25px_rgba(0,230,118,0.7)] hover:scale-105 transition-all duration-300 border border-white/20 active:scale-95"
             >
               <Home className="w-6 h-6" />
             </button>
@@ -107,11 +107,11 @@ export default function BottomDock() {
           {/* Right 1: Carrito */}
           <button 
             onClick={() => alert("Carrito de compras próximamente disponible en pedidos por QR.")}
-            className="flex flex-col items-center gap-1.5 text-malandro-gray hover:text-white active:scale-95 transition-all flex-1"
+            className="flex flex-col items-center gap-1.5 text-billanga-gray hover:text-white active:scale-95 transition-all flex-1"
           >
             <div className="relative">
               <ShoppingCart className="w-5 h-5" />
-              <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-malandro-red rounded-full text-[8px] font-bold flex items-center justify-center text-white border border-[#141416]">
+              <span className="absolute -top-1 -right-1.5 w-3.5 h-3.5 bg-billanga-primary rounded-full text-[8px] font-bold flex items-center justify-center text-white border border-[#141416]">
                 0
               </span>
             </div>
@@ -121,7 +121,7 @@ export default function BottomDock() {
           {/* Right 2: Redes */}
           <button 
             onClick={() => setShowRedes(true)}
-            className="flex flex-col items-center gap-1.5 text-malandro-gray hover:text-white active:scale-95 transition-all flex-1"
+            className="flex flex-col items-center gap-1.5 text-billanga-gray hover:text-white active:scale-95 transition-all flex-1"
           >
             <Share2 className="w-5 h-5" />
             <span className="text-[9px] font-semibold tracking-wide">Redes</span>
@@ -138,7 +138,7 @@ export default function BottomDock() {
               <h3 className="text-xs font-bold text-white uppercase tracking-wider">Nuestras Redes</h3>
               <button 
                 onClick={() => setShowRedes(false)}
-                className="text-malandro-gray hover:text-white transition-colors"
+                className="text-billanga-gray hover:text-white transition-colors"
               >
                 <X className="w-4 h-4" />
               </button>
@@ -149,7 +149,7 @@ export default function BottomDock() {
                 href="https://instagram.com" 
                 target="_blank" 
                 rel="noreferrer"
-                className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 group hover:border-malandro-red/40"
+                className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 group hover:border-billanga-primary/40"
               >
                 <InstagramIcon className="w-6 h-6 text-pink-500 group-hover:scale-110 transition-transform" />
                 <span className="text-xs font-semibold text-white">Instagram</span>
@@ -165,8 +165,8 @@ export default function BottomDock() {
               </a>
             </div>
             
-            <p className="text-[10px] text-malandro-gray pt-2">
-              Billar El Malandro © {new Date().getFullYear()}
+            <p className="text-[10px] text-billanga-gray pt-2">
+              Billanga © {new Date().getFullYear()}
             </p>
           </div>
         </div>
@@ -176,13 +176,13 @@ export default function BottomDock() {
       {showPedidosInfo && (
         <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4 animate-in fade-in duration-200">
           <div className="glass-panel w-full max-w-xs rounded-2xl border border-white/10 p-6 flex flex-col items-center text-center space-y-4 animate-in zoom-in-95 duration-200">
-            <div className="w-12 h-12 rounded-full bg-malandro-red/10 flex items-center justify-center border border-malandro-red/20 mb-2">
-              <Receipt className="w-6 h-6 text-malandro-red" />
+            <div className="w-12 h-12 rounded-full bg-billanga-primary/10 flex items-center justify-center border border-billanga-primary/20 mb-2">
+              <Receipt className="w-6 h-6 text-billanga-primary" />
             </div>
 
             <div className="space-y-2">
               <h3 className="text-sm font-bold text-white uppercase tracking-wider">Mis Pedidos y Consumos</h3>
-              <p className="text-xs text-malandro-gray leading-relaxed">
+              <p className="text-xs text-billanga-gray leading-relaxed">
                 ¡Muy pronto! Podrás escanear el código QR de tu mesa para ordenar comida y bebidas directamente desde tu móvil y ver tus consumos aquí.
               </p>
             </div>

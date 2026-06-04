@@ -80,18 +80,18 @@ export default function ReportesPage() {
   const topProductos = Array.from(productosMap.values()).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
 
   if (loading) {
-    return (<div className="flex flex-col items-center justify-center py-24 text-malandro-gray"><RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" /><p className="text-sm">Generando reportes...</p></div>);
+    return (<div className="flex flex-col items-center justify-center py-24 text-billanga-gray"><RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" /><p className="text-sm">Generando reportes...</p></div>);
   }
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><BarChart3 className="w-7 h-7 text-malandro-red" /> Reportes & Estadísticas</h2>
-          <p className="text-sm text-malandro-gray">Métricas financieras y rendimiento de ventas de la sucursal.</p>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><BarChart3 className="w-7 h-7 text-billanga-primary" /> Reportes & Estadísticas</h2>
+          <p className="text-sm text-billanga-gray">Métricas financieras y rendimiento de ventas de la sucursal.</p>
         </div>
         <div className="flex gap-2">
-          <select value={rangoFechas} onChange={e => setRangoFechas(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-malandro-red">
+          <select value={rangoFechas} onChange={e => setRangoFechas(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-billanga-primary">
             <option value="hoy">Hoy</option><option value="semana">Últimos 7 días</option><option value="mes">Último mes</option><option value="año">Último año</option>
           </select>
           <button onClick={loadData} className="p-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg transition-all"><RefreshCw className="w-4 h-4" /></button>
@@ -103,16 +103,16 @@ export default function ReportesPage() {
       {/* KPIs Principales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-3 bg-green-500/10 rounded-xl"><TrendingUp className="w-6 h-6 text-green-500" /></div><div><p className="text-xs text-malandro-gray uppercase tracking-wider">Ingresos Totales</p><p className="text-2xl font-black text-white mt-1">Bs. {totalIngresos.toFixed(2)}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-3 bg-green-500/10 rounded-xl"><TrendingUp className="w-6 h-6 text-green-500" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Ingresos Totales</p><p className="text-2xl font-black text-white mt-1">Bs. {totalIngresos.toFixed(2)}</p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-3 bg-blue-500/10 rounded-xl"><ShoppingBag className="w-6 h-6 text-blue-400" /></div><div><p className="text-xs text-malandro-gray uppercase tracking-wider">Total Ventas</p><p className="text-2xl font-black text-white mt-1">{totalVentas}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-3 bg-blue-500/10 rounded-xl"><ShoppingBag className="w-6 h-6 text-blue-400" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Total Ventas</p><p className="text-2xl font-black text-white mt-1">{totalVentas}</p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-3 bg-purple-500/10 rounded-xl"><Banknote className="w-6 h-6 text-purple-400" /></div><div><p className="text-xs text-malandro-gray uppercase tracking-wider">Ticket Promedio</p><p className="text-2xl font-black text-white mt-1">Bs. {ticketPromedio.toFixed(2)}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-3 bg-purple-500/10 rounded-xl"><Banknote className="w-6 h-6 text-purple-400" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Ticket Promedio</p><p className="text-2xl font-black text-white mt-1">Bs. {ticketPromedio.toFixed(2)}</p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5 flex flex-col justify-center gap-2">
-           <button className="flex items-center justify-center gap-2 w-full py-2 bg-malandro-red/10 text-malandro-red border border-malandro-red/20 hover:bg-malandro-red hover:text-white rounded-lg text-sm font-bold transition-all">
+           <button className="flex items-center justify-center gap-2 w-full py-2 bg-billanga-primary/10 text-billanga-primary border border-billanga-primary/20 hover:bg-billanga-primary hover:text-white rounded-lg text-sm font-bold transition-all">
              <Download className="w-4 h-4" /> Exportar CSV
            </button>
         </div>
@@ -126,16 +126,16 @@ export default function ReportesPage() {
             {topProductos.length > 0 ? topProductos.map((p, i) => (
               <div key={i} className="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-[#2a2a2c]/50">
                 <div className="flex items-center gap-3">
-                  <div className="w-6 h-6 rounded bg-[#2a2a2c] text-xs font-bold flex items-center justify-center text-malandro-gray">{i + 1}</div>
+                  <div className="w-6 h-6 rounded bg-[#2a2a2c] text-xs font-bold flex items-center justify-center text-billanga-gray">{i + 1}</div>
                   <span className="text-sm font-bold text-white">{p.nombre}</span>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-malandro-red">{p.cantidad} und.</div>
-                  <div className="text-xs text-malandro-gray">Bs. {p.subtotal.toFixed(2)}</div>
+                  <div className="text-sm font-bold text-billanga-primary">{p.cantidad} und.</div>
+                  <div className="text-xs text-billanga-gray">Bs. {p.subtotal.toFixed(2)}</div>
                 </div>
               </div>
             )) : (
-               <div className="py-8 text-center text-malandro-gray/50 text-sm">No hay datos de productos en este periodo.</div>
+               <div className="py-8 text-center text-billanga-gray/50 text-sm">No hay datos de productos en este periodo.</div>
             )}
           </div>
         </div>
@@ -150,15 +150,15 @@ export default function ReportesPage() {
                  <div key={i} className="space-y-1">
                    <div className="flex justify-between text-sm">
                      <span className="capitalize text-white font-bold">{metodo}</span>
-                     <span className="text-malandro-gray">Bs. {monto.toFixed(2)} <span className="text-xs ml-1">({percentage}%)</span></span>
+                     <span className="text-billanga-gray">Bs. {monto.toFixed(2)} <span className="text-xs ml-1">({percentage}%)</span></span>
                    </div>
                    <div className="w-full bg-[#2a2a2c] rounded-full h-2">
-                     <div className="bg-malandro-red h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
+                     <div className="bg-billanga-primary h-2 rounded-full" style={{ width: `${percentage}%` }}></div>
                    </div>
                  </div>
                );
              }) : (
-               <div className="py-8 text-center text-malandro-gray/50 text-sm">No hay datos financieros en este periodo.</div>
+               <div className="py-8 text-center text-billanga-gray/50 text-sm">No hay datos financieros en este periodo.</div>
              )}
           </div>
         </div>

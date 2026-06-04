@@ -71,22 +71,22 @@ export default function ClientesPage() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <UserCheck className="w-7 h-7 text-malandro-red" /> 
+            <UserCheck className="w-7 h-7 text-billanga-primary" /> 
             Gestión de Clientes
           </h2>
-          <p className="text-sm text-malandro-gray">
+          <p className="text-sm text-billanga-gray">
             Directorio de clientes registrados y programa de fidelidad.
           </p>
         </div>
         <div className="flex items-center gap-3">
           <div className="relative">
-            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-malandro-gray" />
+            <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-billanga-gray" />
             <input 
               type="text" 
               placeholder="Buscar cliente..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-9 pr-4 py-2 bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl text-sm focus:outline-none focus:border-malandro-red text-white w-full md:w-64 transition-all"
+              className="pl-9 pr-4 py-2 bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl text-sm focus:outline-none focus:border-billanga-primary text-white w-full md:w-64 transition-all"
             />
           </div>
           <button onClick={loadClientes} className="p-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-xl transition-all">
@@ -110,7 +110,7 @@ export default function ClientesPage() {
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="border-b border-[#2a2a2c] text-xs font-bold text-malandro-gray tracking-wider uppercase bg-[#141416]/50">
+              <tr className="border-b border-[#2a2a2c] text-xs font-bold text-billanga-gray tracking-wider uppercase bg-[#141416]/50">
                 <th className="py-3 pl-6">Cliente</th>
                 <th className="py-3">Contacto</th>
                 <th className="py-3">Puntos Fidelidad</th>
@@ -121,7 +121,7 @@ export default function ClientesPage() {
             <tbody>
               {loading ? (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-malandro-gray">
+                  <td colSpan={5} className="py-12 text-center text-billanga-gray">
                     Cargando clientes...
                   </td>
                 </tr>
@@ -130,7 +130,7 @@ export default function ClientesPage() {
                   <tr key={c.id_cliente} className="border-b border-[#2a2a2c]/40 hover:bg-white/[0.02] transition-colors text-sm group">
                     <td className="py-4 pl-6">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-xl bg-malandro-red/20 text-malandro-red flex items-center justify-center font-bold text-lg uppercase shadow-inner">
+                        <div className="w-10 h-10 rounded-xl bg-billanga-primary/20 text-billanga-primary flex items-center justify-center font-bold text-lg uppercase shadow-inner">
                           {c.nombre.substring(0, 1)}
                         </div>
                         <div>
@@ -143,7 +143,7 @@ export default function ClientesPage() {
                         </div>
                       </div>
                     </td>
-                    <td className="py-4 text-malandro-gray text-xs space-y-1">
+                    <td className="py-4 text-billanga-gray text-xs space-y-1">
                       <p>{c.email || "Sin email"}</p>
                       <p>{c.telefono || "Sin teléfono"}</p>
                     </td>
@@ -153,13 +153,13 @@ export default function ClientesPage() {
                         <span className="font-bold text-yellow-500 text-lg">{c.puntos_fidelidad}</span>
                       </div>
                     </td>
-                    <td className="py-4 text-malandro-gray text-xs">
+                    <td className="py-4 text-billanga-gray text-xs">
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-4 pr-6 text-right">
                       <button 
                         onClick={() => { setCurrentCliente(c); setEditPuntos(c.puntos_fidelidad.toString()); setIsEditing(true); }}
-                        className="p-2 bg-[#2a2a2c] hover:bg-malandro-red text-malandro-gray hover:text-white rounded-lg transition-all"
+                        className="p-2 bg-[#2a2a2c] hover:bg-billanga-primary text-billanga-gray hover:text-white rounded-lg transition-all"
                         title="Modificar Puntos"
                       >
                         <Edit className="w-4 h-4" />
@@ -169,7 +169,7 @@ export default function ClientesPage() {
                 ))
               ) : (
                 <tr>
-                  <td colSpan={5} className="py-12 text-center text-malandro-gray">
+                  <td colSpan={5} className="py-12 text-center text-billanga-gray">
                     No se encontraron clientes.
                   </td>
                 </tr>
@@ -185,11 +185,11 @@ export default function ClientesPage() {
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-sm rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center">
               <h3 className="font-bold text-lg text-white">Editar Puntos</h3>
-              <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-malandro-gray"><X className="w-5 h-5" /></button>
+              <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-6 space-y-4">
               <div>
-                <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block mb-2">
+                <label className="text-xs font-bold text-billanga-gray uppercase tracking-wider block mb-2">
                   Cliente: <span className="text-white normal-case">{currentCliente.nombre}</span>
                 </label>
                 <div className="relative">
@@ -199,14 +199,14 @@ export default function ClientesPage() {
                     value={editPuntos}
                     onChange={(e) => setEditPuntos(e.target.value)}
                     min="0"
-                    className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-3 pl-10 pr-4 text-white font-mono text-xl focus:outline-none focus:border-malandro-red"
+                    className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-3 pl-10 pr-4 text-white font-mono text-xl focus:outline-none focus:border-billanga-primary"
                   />
                 </div>
               </div>
             </div>
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
               <button onClick={() => setIsEditing(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
-              <button onClick={handleUpdatePuntos} className="flex-1 py-2.5 rounded-lg bg-malandro-red hover:bg-malandro-red-dark text-white font-bold text-sm">Guardar</button>
+              <button onClick={handleUpdatePuntos} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm">Guardar</button>
             </div>
           </div>
         </div>

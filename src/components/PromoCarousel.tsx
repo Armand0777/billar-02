@@ -87,7 +87,7 @@ export default function PromoCarousel({ novedades }: PromoCarouselProps) {
       case "evento":
         return "bg-blue-500/20 text-blue-400 border-blue-500/30";
       default:
-        return "bg-malandro-red/20 text-malandro-red border-malandro-red/30";
+        return "bg-billanga-primary/20 text-billanga-primary border-billanga-primary/30";
     }
   };
 
@@ -147,7 +147,7 @@ export default function PromoCarousel({ novedades }: PromoCarouselProps) {
           </p>
 
           <div className="flex items-center gap-3">
-            <button className="bg-malandro-red hover:bg-white hover:text-black text-white px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300">
+            <button className="bg-billanga-primary hover:bg-white hover:text-black text-white px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300">
               Ver Detalles
             </button>
             <div className="flex items-center gap-2 ml-2">

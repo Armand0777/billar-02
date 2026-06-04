@@ -126,25 +126,25 @@ export default function VentasPage() {
       case "completada": return "bg-green-500/10 text-green-500";
       case "pendiente": return "bg-yellow-500/10 text-yellow-500";
       case "anulada": return "bg-red-500/10 text-red-400";
-      default: return "bg-[#2a2a2c] text-malandro-gray";
+      default: return "bg-[#2a2a2c] text-billanga-gray";
     }
   };
 
   if (loading) {
-    return (<div className="flex flex-col items-center justify-center py-24 text-malandro-gray"><RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" /><p className="text-sm">Cargando historial de ventas...</p></div>);
+    return (<div className="flex flex-col items-center justify-center py-24 text-billanga-gray"><RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" /><p className="text-sm">Cargando historial de ventas...</p></div>);
   }
 
   if (!cajaAbierta) {
     return (
       <div className="flex flex-col items-center justify-center min-h-[60vh] animate-in fade-in zoom-in duration-500">
         <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center mb-6">
-          <Lock className="w-12 h-12 text-malandro-red" />
+          <Lock className="w-12 h-12 text-billanga-primary" />
         </div>
         <h2 className="text-3xl font-black text-white mb-3">Caja Cerrada</h2>
-        <p className="text-malandro-gray text-center max-w-md mb-8">
+        <p className="text-billanga-gray text-center max-w-md mb-8">
           Por razones de seguridad, no puedes acceder al módulo de ventas ni cobrar productos hasta que inicies tu turno y abras la caja.
         </p>
-        <a href="/dashboard/caja" className="px-8 py-3 bg-malandro-red hover:bg-malandro-red-dark text-white font-bold rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(211,47,47,0.4)] transition-all">
+        <a href="/dashboard/caja" className="px-8 py-3 bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold rounded-xl flex items-center gap-2 shadow-[0_0_20px_rgba(0,230,118,0.4)] transition-all">
           Ir a Abrir Caja
         </a>
       </div>
@@ -155,11 +155,11 @@ export default function VentasPage() {
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
-          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Receipt className="w-7 h-7 text-malandro-red" /> Historial de Ventas</h2>
-          <p className="text-sm text-malandro-gray">Revisa, filtra y gestiona todas las ventas registradas.</p>
+          <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Receipt className="w-7 h-7 text-billanga-primary" /> Historial de Ventas</h2>
+          <p className="text-sm text-billanga-gray">Revisa, filtra y gestiona todas las ventas registradas.</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={() => setIsDirectPOSOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-malandro-red hover:bg-malandro-red-dark text-white font-bold rounded-lg text-sm transition-all shadow-[0_0_15px_rgba(211,47,47,0.3)]"><Plus className="w-4 h-4" /> Venta Directa</button>
+          <button onClick={() => setIsDirectPOSOpen(true)} className="flex items-center gap-2 px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold rounded-lg text-sm transition-all shadow-[0_0_15px_rgba(0,230,118,0.3)]"><Plus className="w-4 h-4" /> Venta Directa</button>
           <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
         </div>
       </div>
@@ -169,25 +169,25 @@ export default function VentasPage() {
       {/* Resumen */}
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-2.5 bg-malandro-red/10 rounded-xl"><ShoppingBag className="w-5 h-5 text-malandro-red" /></div><div><p className="text-xs text-malandro-gray">Ventas Hoy</p><p className="text-2xl font-black text-white">{ventasHoy.length}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-2.5 bg-billanga-primary/10 rounded-xl"><ShoppingBag className="w-5 h-5 text-billanga-primary" /></div><div><p className="text-xs text-billanga-gray">Ventas Hoy</p><p className="text-2xl font-black text-white">{ventasHoy.length}</p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-2.5 bg-green-500/10 rounded-xl"><TrendingUp className="w-5 h-5 text-green-500" /></div><div><p className="text-xs text-malandro-gray">Ingresos Hoy</p><p className="text-2xl font-black text-white">Bs. {ingresosHoy.toFixed(2)}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-2.5 bg-green-500/10 rounded-xl"><TrendingUp className="w-5 h-5 text-green-500" /></div><div><p className="text-xs text-billanga-gray">Ingresos Hoy</p><p className="text-2xl font-black text-white">Bs. {ingresosHoy.toFixed(2)}</p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-2.5 bg-blue-500/10 rounded-xl"><CreditCard className="w-5 h-5 text-blue-400" /></div><div><p className="text-xs text-malandro-gray">Método Más Usado</p><p className="text-2xl font-black text-white capitalize">{metodoTop}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-2.5 bg-blue-500/10 rounded-xl"><CreditCard className="w-5 h-5 text-blue-400" /></div><div><p className="text-xs text-billanga-gray">Método Más Usado</p><p className="text-2xl font-black text-white capitalize">{metodoTop}</p></div></div>
         </div>
       </div>
 
       {/* Filtros */}
       <div className="bg-[#1a1a1c] border border-[#2a2a2c] p-4 rounded-xl flex flex-wrap gap-3 items-center">
-        <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-malandro-gray/50" /><input type="text" placeholder="Buscar por ID..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 pl-10 pr-3 text-sm text-white w-44 focus:outline-none focus:border-malandro-red" /></div>
-        <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-malandro-red" />
-        <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-malandro-red" />
-        <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-malandro-red">
+        <div className="relative"><Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-billanga-gray/50" /><input type="text" placeholder="Buscar por ID..." value={searchQuery} onChange={e => setSearchQuery(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 pl-10 pr-3 text-sm text-white w-44 focus:outline-none focus:border-billanga-primary" /></div>
+        <input type="date" value={fechaDesde} onChange={e => setFechaDesde(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-billanga-primary" />
+        <input type="date" value={fechaHasta} onChange={e => setFechaHasta(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-billanga-primary" />
+        <select value={filtroEstado} onChange={e => setFiltroEstado(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-billanga-primary">
           <option value="all">Todos los Estados</option><option value="completada">Completada</option><option value="pendiente">Pendiente</option><option value="anulada">Anulada</option>
         </select>
-        <select value={filtroMetodo} onChange={e => setFiltroMetodo(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-malandro-red">
+        <select value={filtroMetodo} onChange={e => setFiltroMetodo(e.target.value)} className="bg-black/40 border border-[#2a2a2c] rounded-lg py-2 px-3 text-sm text-white focus:outline-none focus:border-billanga-primary">
           <option value="all">Todos los Métodos</option><option value="efectivo">Efectivo</option><option value="tarjeta">Tarjeta</option><option value="qr">QR</option>
         </select>
       </div>
@@ -196,7 +196,7 @@ export default function VentasPage() {
       <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
-            <thead><tr className="border-b border-[#2a2a2c] text-xs font-bold text-malandro-gray tracking-wider uppercase bg-[#141416]/50">
+            <thead><tr className="border-b border-[#2a2a2c] text-xs font-bold text-billanga-gray tracking-wider uppercase bg-[#141416]/50">
               <th className="py-4 pl-6">Fecha</th><th className="py-4">Mesa</th><th className="py-4">Atendió</th><th className="py-4 text-center">Items</th><th className="py-4 text-right">Total</th><th className="py-4 text-center">Método</th><th className="py-4 text-center">Estado</th><th className="py-4 pr-6 text-center">Acciones</th>
             </tr></thead>
             <tbody>
@@ -205,21 +205,21 @@ export default function VentasPage() {
                 const mesaInfo = Array.isArray(mesa) ? mesa[0] : mesa;
                 return (
                   <tr key={v.id_venta} className="border-b border-[#2a2a2c]/40 hover:bg-white/[0.02] transition-colors text-sm text-white">
-                    <td className="py-3 pl-6 text-xs"><div>{new Date(v.created_at).toLocaleDateString("es-BO")}</div><div className="text-malandro-gray">{new Date(v.created_at).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</div></td>
+                    <td className="py-3 pl-6 text-xs"><div>{new Date(v.created_at).toLocaleDateString("es-BO")}</div><div className="text-billanga-gray">{new Date(v.created_at).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}</div></td>
                     <td className="py-3">{mesaInfo ? `Mesa ${mesaInfo.numero}` : "—"}</td>
-                    <td className="py-3 text-malandro-gray text-xs">{v.usuarios?.nombre || "—"}</td>
+                    <td className="py-3 text-billanga-gray text-xs">{v.usuarios?.nombre || "—"}</td>
                     <td className="py-3 text-center"><span className="bg-[#2a2a2c] px-2 py-0.5 rounded-full text-xs font-bold">{v.venta_items?.length || 0}</span></td>
                     <td className="py-3 text-right font-bold">Bs. {Number(v.total).toFixed(2)}</td>
                     <td className="py-3 text-center"><span className="capitalize text-xs">{v.metodo_pago}</span></td>
                     <td className="py-3 text-center"><span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${estadoBadge(v.estado)}`}>{v.estado}</span></td>
                     <td className="py-3 pr-6 text-center flex gap-2 justify-center">
-                      <button onClick={() => setSelectedVenta(v)} className="p-1.5 hover:bg-[#2a2a2c] rounded-lg text-malandro-gray hover:text-white transition-all" title="Ver detalle"><Eye className="w-4 h-4" /></button>
-                      {v.estado === "completada" && <button onClick={() => handleAnular(v)} className="p-1.5 hover:bg-red-500/10 rounded-lg text-malandro-gray hover:text-red-400 transition-all" title="Anular"><XCircle className="w-4 h-4" /></button>}
+                      <button onClick={() => setSelectedVenta(v)} className="p-1.5 hover:bg-[#2a2a2c] rounded-lg text-billanga-gray hover:text-white transition-all" title="Ver detalle"><Eye className="w-4 h-4" /></button>
+                      {v.estado === "completada" && <button onClick={() => handleAnular(v)} className="p-1.5 hover:bg-red-500/10 rounded-lg text-billanga-gray hover:text-red-400 transition-all" title="Anular"><XCircle className="w-4 h-4" /></button>}
                     </td>
                   </tr>
                 );
               }) : (
-                <tr><td colSpan={8} className="py-12 text-center text-malandro-gray text-sm">No hay ventas registradas con estos filtros.</td></tr>
+                <tr><td colSpan={8} className="py-12 text-center text-billanga-gray text-sm">No hay ventas registradas con estos filtros.</td></tr>
               )}
             </tbody>
           </table>
@@ -232,29 +232,29 @@ export default function VentasPage() {
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-lg rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center">
               <h3 className="font-bold text-lg text-white">Detalle de Venta</h3>
-              <button onClick={() => setSelectedVenta(null)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-malandro-gray"><X className="w-5 h-5" /></button>
+              <button onClick={() => setSelectedVenta(null)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-6 space-y-4">
               <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-malandro-gray text-xs block">Fecha</span><span className="text-white font-bold">{new Date(selectedVenta.created_at).toLocaleString("es-BO")}</span></div>
-                <div><span className="text-malandro-gray text-xs block">Estado</span><span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${estadoBadge(selectedVenta.estado)}`}>{selectedVenta.estado}</span></div>
-                <div><span className="text-malandro-gray text-xs block">Método de Pago</span><span className="text-white font-bold capitalize">{selectedVenta.metodo_pago}</span></div>
-                <div><span className="text-malandro-gray text-xs block">Atendió</span><span className="text-white font-bold">{selectedVenta.usuarios?.nombre || "—"}</span></div>
+                <div><span className="text-billanga-gray text-xs block">Fecha</span><span className="text-white font-bold">{new Date(selectedVenta.created_at).toLocaleString("es-BO")}</span></div>
+                <div><span className="text-billanga-gray text-xs block">Estado</span><span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${estadoBadge(selectedVenta.estado)}`}>{selectedVenta.estado}</span></div>
+                <div><span className="text-billanga-gray text-xs block">Método de Pago</span><span className="text-white font-bold capitalize">{selectedVenta.metodo_pago}</span></div>
+                <div><span className="text-billanga-gray text-xs block">Atendió</span><span className="text-white font-bold">{selectedVenta.usuarios?.nombre || "—"}</span></div>
               </div>
               <div className="border-t border-[#2a2a2c] pt-4">
-                <h4 className="text-xs font-bold text-malandro-gray uppercase tracking-wider mb-3">Productos</h4>
+                <h4 className="text-xs font-bold text-billanga-gray uppercase tracking-wider mb-3">Productos</h4>
                 <div className="space-y-2">
                   {selectedVenta.venta_items?.map((item: any, i: number) => (
                     <div key={i} className="flex justify-between items-center bg-black/30 p-3 rounded-lg text-sm">
-                      <div><span className="text-white font-bold">{item.productos?.nombre || "Producto"}</span><span className="text-malandro-gray text-xs ml-2">x{Number(item.cantidad).toFixed(0)}</span></div>
+                      <div><span className="text-white font-bold">{item.productos?.nombre || "Producto"}</span><span className="text-billanga-gray text-xs ml-2">x{Number(item.cantidad).toFixed(0)}</span></div>
                       <span className="font-bold text-white">Bs. {Number(item.subtotal).toFixed(2)}</span>
                     </div>
                   ))}
-                  {(!selectedVenta.venta_items || selectedVenta.venta_items.length === 0) && <p className="text-malandro-gray text-sm text-center py-4">Solo tiempo de juego (sin productos adicionales)</p>}
+                  {(!selectedVenta.venta_items || selectedVenta.venta_items.length === 0) && <p className="text-billanga-gray text-sm text-center py-4">Solo tiempo de juego (sin productos adicionales)</p>}
                 </div>
               </div>
-              <div className="bg-malandro-red/10 border border-malandro-red/30 p-4 rounded-xl flex justify-between items-center">
-                <span className="text-sm text-malandro-red font-bold uppercase">Total</span>
+              <div className="bg-billanga-primary/10 border border-billanga-primary/30 p-4 rounded-xl flex justify-between items-center">
+                <span className="text-sm text-billanga-primary font-bold uppercase">Total</span>
                 <span className="text-2xl font-black text-white">Bs. {Number(selectedVenta.total).toFixed(2)}</span>
               </div>
             </div>

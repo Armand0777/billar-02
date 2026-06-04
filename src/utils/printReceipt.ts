@@ -20,7 +20,7 @@ export interface ReceiptData {
 
 export function printReceipt(data: ReceiptData) {
   const dateStr = new Date().toLocaleString("es-BO");
-  const logoUrl = "/logo.png"; // Se asume que el logo est en public/logo.png
+  const logoUrl = "/logo_transparente.png"; // Se asume que el logo est en public/logo_transparente.png
 
   let timeSection = "";
   if (data.tipo === "mesa" && data.tiempo) {

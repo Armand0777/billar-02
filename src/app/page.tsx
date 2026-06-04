@@ -50,8 +50,8 @@ export default function HomePage() {
   useEffect(() => {
     loadData();
     // Restaurar carrito guardado si existe (ej. tras iniciar sesión)
-    const savedCart = localStorage.getItem("malandro_cart");
-    const savedTable = localStorage.getItem("malandro_table");
+    const savedCart = localStorage.getItem("billanga_cart");
+    const savedTable = localStorage.getItem("billanga_table");
     if (savedCart) {
       try { setCart(JSON.parse(savedCart)); setIsCartOpen(true); } catch (e) {}
     }
@@ -151,8 +151,8 @@ export default function HomePage() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) {
         // Guardar progreso y redirigir
-        localStorage.setItem("malandro_cart", JSON.stringify(cart));
-        localStorage.setItem("malandro_table", tableNumber);
+        localStorage.setItem("billanga_cart", JSON.stringify(cart));
+        localStorage.setItem("billanga_table", tableNumber);
         router.push("/login?redirect=/");
         return;
       }
@@ -189,8 +189,8 @@ export default function HomePage() {
       if (itemsError) throw itemsError;
 
       // 6. Éxito
-      localStorage.removeItem("malandro_cart");
-      localStorage.removeItem("malandro_table");
+      localStorage.removeItem("billanga_cart");
+      localStorage.removeItem("billanga_table");
       setIsOrdering(false);
       setOrderSuccess(true);
       setCart([]);
@@ -214,7 +214,7 @@ export default function HomePage() {
   if (loading) {
     return (
       <div className="min-h-screen bg-[#0a0a0a] flex items-center justify-center">
-        <div className="w-10 h-10 border-4 border-malandro-red border-t-transparent rounded-full animate-spin"></div>
+        <div className="w-10 h-10 border-4 border-billanga-primary border-t-transparent rounded-full animate-spin"></div>
       </div>
     );
   }
@@ -232,13 +232,13 @@ export default function HomePage() {
       {/* Buscador Integrado (solo visible en móvil si no usa el Navbar) */}
       <div id="menu" className="px-4 pb-4">
         <div className="relative max-w-4xl mx-auto">
-          <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-malandro-gray" />
+          <Search className="w-5 h-5 absolute left-4 top-1/2 -translate-y-1/2 text-billanga-gray" />
           <input 
             type="text" 
             placeholder="Buscar cerveza, snacks, poleras..." 
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
-            className="w-full bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-malandro-red shadow-lg transition-colors"
+            className="w-full bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl py-3.5 pl-12 pr-4 text-sm focus:outline-none focus:border-billanga-primary shadow-lg transition-colors"
           />
         </div>
       </div>
@@ -248,7 +248,7 @@ export default function HomePage() {
         <button 
           onClick={() => setActiveCategory("all")}
           className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-md ${
-            activeCategory === "all" ? "bg-malandro-red text-white" : "bg-[#1a1a1c] text-malandro-gray border border-[#2a2a2c] hover:bg-[#2a2a2c]"
+            activeCategory === "all" ? "bg-billanga-primary text-white" : "bg-[#1a1a1c] text-billanga-gray border border-[#2a2a2c] hover:bg-[#2a2a2c]"
           }`}
         >
           Todo
@@ -258,7 +258,7 @@ export default function HomePage() {
             key={cat.id_categoria}
             onClick={() => setActiveCategory(cat.id_categoria)}
             className={`px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all shadow-md ${
-              activeCategory === cat.id_categoria ? "bg-malandro-red text-white" : "bg-[#1a1a1c] text-malandro-gray border border-[#2a2a2c] hover:bg-[#2a2a2c]"
+              activeCategory === cat.id_categoria ? "bg-billanga-primary text-white" : "bg-[#1a1a1c] text-billanga-gray border border-[#2a2a2c] hover:bg-[#2a2a2c]"
             }`}
           >
             {cat.nombre}
@@ -283,14 +283,14 @@ export default function HomePage() {
             <div className="p-3.5 flex flex-col flex-1">
               <h3 className="font-bold text-sm text-white line-clamp-2 leading-tight">{prod.nombre}</h3>
               {prod.descripcion && (
-                <p className="text-[11px] text-malandro-gray mt-1.5 line-clamp-2">{prod.descripcion}</p>
+                <p className="text-[11px] text-billanga-gray mt-1.5 line-clamp-2">{prod.descripcion}</p>
               )}
               
               <div className="mt-auto pt-4 flex flex-col gap-2.5">
-                <span className="font-black text-malandro-red text-[15px]">Bs. {Number(prod.precio_venta).toFixed(2)}</span>
+                <span className="font-black text-billanga-primary text-[15px]">Bs. {Number(prod.precio_venta).toFixed(2)}</span>
                 <button 
                   onClick={() => addToCart(prod)}
-                  className="w-full py-2.5 bg-[#2a2a2c] hover:bg-malandro-red hover:border-malandro-red text-white text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1 border border-white/5 shadow-md"
+                  className="w-full py-2.5 bg-[#2a2a2c] hover:bg-billanga-primary hover:border-billanga-primary text-white text-xs font-bold rounded-xl transition-colors flex items-center justify-center gap-1 border border-white/5 shadow-md"
                 >
                   <Plus className="w-3.5 h-3.5" /> Agregar
                 </button>
@@ -300,7 +300,7 @@ export default function HomePage() {
         ))}
 
         {filteredProducts.length === 0 && (
-          <div className="col-span-full py-16 text-center text-malandro-gray text-sm">
+          <div className="col-span-full py-16 text-center text-billanga-gray text-sm">
             No se encontraron productos que coincidan con la búsqueda.
           </div>
         )}
@@ -311,12 +311,12 @@ export default function HomePage() {
         <div className="fixed bottom-28 md:bottom-6 left-0 w-full px-4 z-40 flex justify-center animate-in slide-in-from-bottom-10 fade-in duration-300">
           <button 
             onClick={() => setIsCartOpen(true)}
-            className="w-full max-w-sm bg-malandro-red hover:bg-malandro-red-dark text-white rounded-2xl p-4 flex items-center justify-between shadow-[0_10px_30px_rgba(211,47,47,0.4)] transition-transform hover:scale-105 active:scale-95"
+            className="w-full max-w-sm bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-2xl p-4 flex items-center justify-between shadow-[0_10px_30px_rgba(0,230,118,0.4)] transition-transform hover:scale-105 active:scale-95"
           >
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl relative">
                 <ShoppingBag className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-white text-malandro-red w-5 h-5 rounded-full text-xs font-black flex items-center justify-center shadow-sm">
+                <span className="absolute -top-2 -right-2 bg-white text-billanga-primary w-5 h-5 rounded-full text-xs font-black flex items-center justify-center shadow-sm">
                   {cartItemCount}
                 </span>
               </div>
@@ -339,10 +339,10 @@ export default function HomePage() {
             {/* Header del carrito */}
             <div className="p-5 border-b border-[#2a2a2c] flex justify-between items-center bg-[#1a1a1c] rounded-t-3xl">
               <h2 className="text-xl font-bold text-white flex items-center gap-2">
-                <ShoppingBag className="w-5 h-5 text-malandro-red" />
+                <ShoppingBag className="w-5 h-5 text-billanga-primary" />
                 Tu Pedido
               </h2>
-              <button onClick={() => setIsCartOpen(false)} className="p-2 bg-black/40 hover:bg-[#2a2a2c] rounded-full text-malandro-gray transition-colors">
+              <button onClick={() => setIsCartOpen(false)} className="p-2 bg-black/40 hover:bg-[#2a2a2c] rounded-full text-billanga-gray transition-colors">
                 <X className="w-5 h-5" />
               </button>
             </div>
@@ -355,10 +355,10 @@ export default function HomePage() {
                     <Check className="w-10 h-10" />
                   </div>
                   <h3 className="text-2xl font-black text-white uppercase italic">¡Pedido Enviado!</h3>
-                  <p className="text-malandro-gray text-sm px-6">Tu pedido ha sido enviado a la barra. En breve te lo llevaremos a la Mesa {tableNumber}.</p>
+                  <p className="text-billanga-gray text-sm px-6">Tu pedido ha sido enviado a la barra. En breve te lo llevaremos a la Mesa {tableNumber}.</p>
                 </div>
               ) : cart.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center text-malandro-gray space-y-3">
+                <div className="flex flex-col items-center justify-center h-full text-center text-billanga-gray space-y-3">
                   <ShoppingBag className="w-12 h-12 opacity-20" />
                   <p>Aún no has agregado nada al pedido.</p>
                 </div>
@@ -369,18 +369,18 @@ export default function HomePage() {
                       {item.producto.imagen_url ? (
                         <Image src={item.producto.imagen_url} alt={item.producto.nombre} fill className="object-cover" />
                       ) : (
-                        <Beer className="w-6 h-6 text-malandro-gray" />
+                        <Beer className="w-6 h-6 text-billanga-gray" />
                       )}
                     </div>
                     <div className="flex-1 min-w-0">
                       <h4 className="font-bold text-sm text-white truncate">{item.producto.nombre}</h4>
-                      <p className="font-bold text-malandro-red text-xs mt-1">Bs. {Number(item.producto.precio_venta).toFixed(2)}</p>
+                      <p className="font-bold text-billanga-primary text-xs mt-1">Bs. {Number(item.producto.precio_venta).toFixed(2)}</p>
                     </div>
                     <div className="flex flex-col items-center justify-between gap-2">
                       <div className="flex items-center gap-3 bg-black border border-[#2a2a2c] rounded-lg p-1">
-                        <button onClick={() => updateQuantity(item.producto.id_producto, -1)} className="w-6 h-6 flex items-center justify-center text-white bg-[#2a2a2c] rounded-md hover:bg-malandro-red transition-colors"><Minus className="w-3 h-3" /></button>
+                        <button onClick={() => updateQuantity(item.producto.id_producto, -1)} className="w-6 h-6 flex items-center justify-center text-white bg-[#2a2a2c] rounded-md hover:bg-billanga-primary transition-colors"><Minus className="w-3 h-3" /></button>
                         <span className="font-bold text-sm w-4 text-center">{item.cantidad}</span>
-                        <button onClick={() => updateQuantity(item.producto.id_producto, 1)} className="w-6 h-6 flex items-center justify-center text-white bg-malandro-red rounded-md hover:bg-[#b81d24] transition-colors"><Plus className="w-3 h-3" /></button>
+                        <button onClick={() => updateQuantity(item.producto.id_producto, 1)} className="w-6 h-6 flex items-center justify-center text-white bg-billanga-primary rounded-md hover:bg-[#b81d24] transition-colors"><Plus className="w-3 h-3" /></button>
                       </div>
                     </div>
                   </div>
@@ -392,25 +392,25 @@ export default function HomePage() {
             {!orderSuccess && cart.length > 0 && (
               <div className="border-t border-[#2a2a2c] bg-[#1a1a1c] p-5 pb-8 md:pb-5 md:rounded-b-3xl space-y-4 shadow-[0_-10px_20px_rgba(0,0,0,0.5)] z-10">
                 <div className="flex justify-between items-end">
-                  <span className="text-malandro-gray font-bold text-sm uppercase tracking-wider">Total del Pedido</span>
+                  <span className="text-billanga-gray font-bold text-sm uppercase tracking-wider">Total del Pedido</span>
                   <span className="text-2xl font-black text-white">Bs. {cartTotal.toFixed(2)}</span>
                 </div>
                 
                 <div>
-                  <label className="text-xs font-bold text-malandro-gray uppercase tracking-wider block mb-2">¿En qué mesa estás?</label>
+                  <label className="text-xs font-bold text-billanga-gray uppercase tracking-wider block mb-2">¿En qué mesa estás?</label>
                   <input 
                     type="text" 
                     value={tableNumber}
                     onChange={e => setTableNumber(e.target.value)}
                     placeholder="Ej: Mesa 3"
-                    className="w-full bg-[#121212] border border-[#2a2a2c] rounded-xl py-3 px-4 text-white font-bold focus:outline-none focus:border-malandro-red"
+                    className="w-full bg-[#121212] border border-[#2a2a2c] rounded-xl py-3 px-4 text-white font-bold focus:outline-none focus:border-billanga-primary"
                   />
                 </div>
 
                 <button 
                   onClick={handleSendOrder}
                   disabled={isOrdering || !tableNumber}
-                  className="w-full py-4 bg-malandro-red hover:bg-[#b81d24] disabled:opacity-50 text-white rounded-xl font-black text-lg transition-all shadow-[0_0_20px_rgba(211,47,47,0.3)] flex justify-center items-center gap-2 active:scale-95"
+                  className="w-full py-4 bg-billanga-primary hover:bg-[#b81d24] disabled:opacity-50 text-white rounded-xl font-black text-lg transition-all shadow-[0_0_20px_rgba(0,230,118,0.3)] flex justify-center items-center gap-2 active:scale-95"
                 >
                   {isOrdering ? <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></div> : "Enviar a la Barra"}
                 </button>

@@ -125,7 +125,7 @@ export default async function DashboardPage() {
             <AlertTriangle className="w-6 h-6 shrink-0 text-red-500 mt-0.5" />
             <div>
               <h4 className="font-bold text-white">¿No ves datos reales de la base de datos?</h4>
-              <p className="text-sm text-malandro-gray mt-1">
+              <p className="text-sm text-billanga-gray mt-1">
                 La conexión falló o las tablas aún no han sido creadas. Asegúrate de ejecutar el archivo SQL en el editor SQL de Supabase.
               </p>
               <p className="text-xs text-red-400/80 font-mono mt-1">Detalle: {errorMessage}</p>
@@ -144,47 +144,47 @@ export default async function DashboardPage() {
       {/* Primer Fila: KPIs Principales */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {/* Ventas del Día */}
-        <div className="bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 border-t-malandro-red rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md">
+        <div className="bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 border-t-billanga-primary rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-malandro-gray text-xs font-bold tracking-wider uppercase">Ventas del Día</h3>
-            <TrendingUp className="w-5 h-5 text-[#2a2a2c] group-hover:text-malandro-red transition-colors" />
+            <h3 className="text-billanga-gray text-xs font-bold tracking-wider uppercase">Ventas del Día</h3>
+            <TrendingUp className="w-5 h-5 text-[#2a2a2c] group-hover:text-billanga-primary transition-colors" />
           </div>
           <div className="text-3xl font-bold text-white mb-1">
             Bs. {totalVentasHoy.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <p className="text-xs text-malandro-gray">{ventasHoyCount} ticket(s) emitidos</p>
+          <p className="text-xs text-billanga-gray">{ventasHoyCount} ticket(s) emitidos</p>
         </div>
 
         {/* Ticket Promedio */}
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 border-t-yellow-500 rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-malandro-gray text-xs font-bold tracking-wider uppercase">Ticket Promedio</h3>
+            <h3 className="text-billanga-gray text-xs font-bold tracking-wider uppercase">Ticket Promedio</h3>
             <ShoppingCart className="w-5 h-5 text-[#2a2a2c] group-hover:text-yellow-500 transition-colors" />
           </div>
           <div className="text-3xl font-bold text-white mb-1">
             Bs. {ticketPromedio.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
-          <p className="text-xs text-malandro-gray">Por venta completada</p>
+          <p className="text-xs text-billanga-gray">Por venta completada</p>
         </div>
 
         {/* Cajeros Activos */}
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 border-t-green-500 rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md">
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-malandro-gray text-xs font-bold tracking-wider uppercase">Cajeros Activos</h3>
+            <h3 className="text-billanga-gray text-xs font-bold tracking-wider uppercase">Cajeros Activos</h3>
             <Users className="w-5 h-5 text-[#2a2a2c] group-hover:text-green-500 transition-colors" />
           </div>
           <div className="text-3xl font-bold text-white mb-1">{cajerosActivos}</div>
-          <p className="text-xs text-malandro-gray">Personal en turno activo</p>
+          <p className="text-xs text-billanga-gray">Personal en turno activo</p>
         </div>
 
         {/* Alertas de Stock */}
         <div className={`bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md ${alertasStockCount > 0 ? 'border-t-orange-500' : 'border-t-green-500'}`}>
           <div className="flex justify-between items-start mb-2">
-            <h3 className="text-malandro-gray text-xs font-bold tracking-wider uppercase">Alertas de Stock</h3>
+            <h3 className="text-billanga-gray text-xs font-bold tracking-wider uppercase">Alertas de Stock</h3>
             <AlertTriangle className={`w-5 h-5 text-[#2a2a2c] group-hover:text-orange-500 transition-colors ${alertasStockCount > 0 ? 'text-orange-500 animate-pulse' : ''}`} />
           </div>
           <div className="text-3xl font-bold text-white mb-1">{alertasStockCount}</div>
-          <p className="text-xs text-malandro-gray">Productos bajo el mínimo</p>
+          <p className="text-xs text-billanga-gray">Productos bajo el mínimo</p>
         </div>
       </div>
 
@@ -197,7 +197,7 @@ export default async function DashboardPage() {
             <div className="w-10 h-10 rounded-lg bg-green-500/10 flex items-center justify-center mb-4">
               <Banknote className="w-5 h-5 text-green-500" />
             </div>
-            <h3 className="text-malandro-gray text-sm mb-1">Efectivo</h3>
+            <h3 className="text-billanga-gray text-sm mb-1">Efectivo</h3>
             <div className="text-2xl font-bold text-white">
               Bs. {efectivoTotal.toLocaleString("es-BO", { minimumFractionDigits: 2 })}
             </div>
@@ -208,7 +208,7 @@ export default async function DashboardPage() {
             <div className="w-10 h-10 rounded-lg bg-blue-500/10 flex items-center justify-center mb-4">
               <CreditCard className="w-5 h-5 text-blue-500" />
             </div>
-            <h3 className="text-malandro-gray text-sm mb-1">Tarjeta</h3>
+            <h3 className="text-billanga-gray text-sm mb-1">Tarjeta</h3>
             <div className="text-2xl font-bold text-white">
               Bs. {tarjetaTotal.toLocaleString("es-BO", { minimumFractionDigits: 2 })}
             </div>
@@ -219,7 +219,7 @@ export default async function DashboardPage() {
             <div className="w-10 h-10 rounded-lg bg-yellow-500/10 flex items-center justify-center mb-4">
               <Smartphone className="w-5 h-5 text-yellow-500" />
             </div>
-            <h3 className="text-malandro-gray text-sm mb-1">QR / Billetera</h3>
+            <h3 className="text-billanga-gray text-sm mb-1">QR / Billetera</h3>
             <div className="text-2xl font-bold text-white">
               Bs. {qrTotal.toLocaleString("es-BO", { minimumFractionDigits: 2 })}
             </div>
@@ -230,7 +230,7 @@ export default async function DashboardPage() {
             <div className="w-10 h-10 rounded-lg bg-orange-500/10 flex items-center justify-center mb-4">
               <ArrowUpRight className="w-5 h-5 text-orange-500" />
             </div>
-            <h3 className="text-malandro-gray text-sm mb-1">Otros / Mixto</h3>
+            <h3 className="text-billanga-gray text-sm mb-1">Otros / Mixto</h3>
             <div className="text-2xl font-bold text-white">
               Bs. {mixtaTotal.toLocaleString("es-BO", { minimumFractionDigits: 2 })}
             </div>
@@ -245,7 +245,7 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2 bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-6 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-base font-bold text-white">Últimas ventas</h2>
-            <button className="px-4 py-1.5 rounded-lg border border-[#2a2a2c] text-sm text-malandro-gray hover:text-white hover:bg-[#2a2a2c] transition-colors">
+            <button className="px-4 py-1.5 rounded-lg border border-[#2a2a2c] text-sm text-billanga-gray hover:text-white hover:bg-[#2a2a2c] transition-colors">
               Ver todo
             </button>
           </div>
@@ -253,7 +253,7 @@ export default async function DashboardPage() {
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead>
-                <tr className="border-b border-[#2a2a2c] text-xs font-bold text-malandro-gray tracking-wider uppercase">
+                <tr className="border-b border-[#2a2a2c] text-xs font-bold text-billanga-gray tracking-wider uppercase">
                   <th className="pb-3 pl-4">Código / ID</th>
                   <th className="pb-3">Fecha/Hora</th>
                   <th className="pb-3">Cajero</th>
@@ -270,7 +270,7 @@ export default async function DashboardPage() {
                       <td className="py-3">
                         {new Date(venta.created_at).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}
                       </td>
-                      <td className="py-3 text-malandro-gray">{venta.usuarios?.nombre || "Sistema"}</td>
+                      <td className="py-3 text-billanga-gray">{venta.usuarios?.nombre || "Sistema"}</td>
                       <td className="py-3 capitalize text-xs">{venta.metodo_pago}</td>
                       <td className="py-3 font-bold">Bs. {Number(venta.total).toFixed(2)}</td>
                       <td className="py-3">
@@ -286,7 +286,7 @@ export default async function DashboardPage() {
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={6} className="py-12 text-center text-malandro-gray text-sm">
+                    <td colSpan={6} className="py-12 text-center text-billanga-gray text-sm">
                       Sin ventas registradas hoy
                     </td>
                   </tr>
@@ -300,13 +300,13 @@ export default async function DashboardPage() {
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-6 flex flex-col shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-base font-bold text-white">Top productos hoy</h2>
-            <button className="px-4 py-1.5 rounded-lg border border-[#2a2a2c] text-sm text-malandro-gray hover:text-white hover:bg-[#2a2a2c] transition-colors">
+            <button className="px-4 py-1.5 rounded-lg border border-[#2a2a2c] text-sm text-billanga-gray hover:text-white hover:bg-[#2a2a2c] transition-colors">
               Reportes
             </button>
           </div>
           
-          <div className="flex-1 flex flex-col items-center justify-center text-malandro-gray/50 mt-4">
-            <PackageOpen className="w-12 h-12 mb-3 text-malandro-gray/30" />
+          <div className="flex-1 flex flex-col items-center justify-center text-billanga-gray/50 mt-4">
+            <PackageOpen className="w-12 h-12 mb-3 text-billanga-gray/30" />
             <span className="text-sm">Sin datos de ventas hoy</span>
           </div>
         </div>

@@ -64,10 +64,10 @@ export default function RegistroPage() {
   return (
     <div className="min-h-screen flex items-center justify-center relative overflow-hidden font-[family-name:var(--font-geist-sans)] px-4 py-12">
       {/* Background Glow */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-malandro-red opacity-10 blur-[100px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[700px] h-[700px] bg-billanga-primary opacity-10 blur-[100px] rounded-full pointer-events-none" />
 
       {/* Botón regresar */}
-      <Link href="/" className="absolute top-6 left-6 text-malandro-gray hover:text-white flex items-center gap-2 transition-colors z-20">
+      <Link href="/" className="absolute top-6 left-6 text-billanga-gray hover:text-white flex items-center gap-2 transition-colors z-20">
         <ArrowLeft className="w-5 h-5" />
         <span className="hidden sm:inline">Volver al inicio</span>
       </Link>
@@ -76,17 +76,17 @@ export default function RegistroPage() {
         
         {/* Header del Form */}
         <div className="flex flex-col items-center mb-8">
-          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-malandro-red relative mb-4">
+          <div className="w-16 h-16 rounded-full overflow-hidden border-2 border-billanga-primary relative mb-4">
             <Image 
-              src="/logo.png" 
-              alt="Logo El Malandro" 
+              src="/logo_transparente.png" 
+              alt="Logo El Billanga" 
               fill 
               sizes="64px"
               className="object-cover"
             />
           </div>
-          <h2 className="text-2xl font-bold text-white text-center">Únete a El Malandro</h2>
-          <p className="text-malandro-gray text-sm mt-2 text-center">Crea tu cuenta para reservas y torneos</p>
+          <h2 className="text-2xl font-bold text-white text-center">Únete a El Billanga</h2>
+          <p className="text-billanga-gray text-sm mt-2 text-center">Crea tu cuenta para reservas y torneos</p>
         </div>
 
         {/* Formulario */}
@@ -107,55 +107,55 @@ export default function RegistroPage() {
           )}
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-malandro-gray block">Nombre Completo</label>
+            <label className="text-sm font-medium text-billanga-gray block">Nombre Completo</label>
             <div className="relative">
-              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-malandro-gray/50" />
+              <User className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-billanga-gray/50" />
               <input 
                 type="text" 
                 name="nombre"
                 placeholder="Tu nombre" 
-                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-malandro-gray/50 focus:outline-none focus:border-malandro-red focus:ring-1 focus:ring-malandro-red transition-all"
+                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-billanga-gray/50 focus:outline-none focus:border-billanga-primary focus:ring-1 focus:ring-billanga-primary transition-all"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-malandro-gray block">Teléfono (opcional)</label>
+            <label className="text-sm font-medium text-billanga-gray block">Teléfono (opcional)</label>
             <div className="relative">
-              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-malandro-gray/50" />
+              <Phone className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-billanga-gray/50" />
               <input 
                 type="tel" 
                 name="telefono"
                 placeholder="+58 412 1234567" 
-                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-malandro-gray/50 focus:outline-none focus:border-malandro-red focus:ring-1 focus:ring-malandro-red transition-all"
+                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-billanga-gray/50 focus:outline-none focus:border-billanga-primary focus:ring-1 focus:ring-billanga-primary transition-all"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-malandro-gray block">Correo Electrónico</label>
+            <label className="text-sm font-medium text-billanga-gray block">Correo Electrónico</label>
             <div className="relative">
-              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-malandro-gray/50" />
+              <Mail className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-billanga-gray/50" />
               <input 
                 type="email" 
                 name="email"
                 placeholder="tu@email.com" 
-                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-malandro-gray/50 focus:outline-none focus:border-malandro-red focus:ring-1 focus:ring-malandro-red transition-all"
+                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-billanga-gray/50 focus:outline-none focus:border-billanga-primary focus:ring-1 focus:ring-billanga-primary transition-all"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="text-sm font-medium text-malandro-gray block">Contraseña</label>
+            <label className="text-sm font-medium text-billanga-gray block">Contraseña</label>
             <div className="relative">
-              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-malandro-gray/50" />
+              <Lock className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-billanga-gray/50" />
               <input 
                 type="password" 
                 name="password"
                 placeholder="••••••••" 
-                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-malandro-gray/50 focus:outline-none focus:border-malandro-red focus:ring-1 focus:ring-malandro-red transition-all"
+                className="w-full bg-black/40 border border-white/10 rounded-lg py-2.5 pl-10 pr-4 text-white placeholder:text-billanga-gray/50 focus:outline-none focus:border-billanga-primary focus:ring-1 focus:ring-billanga-primary transition-all"
                 required
                 minLength={6}
               />
@@ -165,7 +165,7 @@ export default function RegistroPage() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-3 rounded-lg bg-malandro-red hover:bg-malandro-red-dark text-white font-bold transition-all shadow-[0_0_15px_rgba(211,47,47,0.3)] hover:shadow-[0_0_25px_rgba(211,47,47,0.5)] mt-6 disabled:opacity-50 flex items-center justify-center gap-2"
+            className="w-full py-3 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold transition-all shadow-[0_0_15px_rgba(0,230,118,0.3)] hover:shadow-[0_0_25px_rgba(0,230,118,0.5)] mt-6 disabled:opacity-50 flex items-center justify-center gap-2"
           >
             {loading ? (
               <>
@@ -179,8 +179,8 @@ export default function RegistroPage() {
         </form>
 
         {/* Footer del Form */}
-        <p className="text-center text-sm text-malandro-gray mt-6">
-          ¿Ya tienes cuenta? <Link href="/login" className="text-white hover:text-malandro-red transition-colors font-medium">Inicia sesión</Link>
+        <p className="text-center text-sm text-billanga-gray mt-6">
+          ¿Ya tienes cuenta? <Link href="/login" className="text-white hover:text-billanga-primary transition-colors font-medium">Inicia sesión</Link>
         </p>
       </div>
     </div>

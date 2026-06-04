@@ -12,7 +12,7 @@ export default function ConfiguracionPage() {
 
   const [configId, setConfigId] = useState<string | null>(null);
   const [currentUser, setCurrentUser] = useState<any>(null);
-  const [billarName, setBillarName] = useState("Billar El Malandro");
+  const [billarName, setBillarName] = useState("Billanga");
   const [hourlyRate, setHourlyRate] = useState(30.00);
   const [currency, setCurrency] = useState("Bs.");
   const [soundsEnabled, setSoundsEnabled] = useState(true);
@@ -121,8 +121,8 @@ export default function ConfiguracionPage() {
 
   if (loading) {
     return (
-      <div className="flex flex-col items-center justify-center py-24 text-malandro-gray">
-        <RefreshCw className="w-10 h-10 animate-spin text-malandro-red mb-4" />
+      <div className="flex flex-col items-center justify-center py-24 text-billanga-gray">
+        <RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" />
         <p className="text-sm">Cargando configuración...</p>
       </div>
     );
@@ -132,10 +132,10 @@ export default function ConfiguracionPage() {
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500">
       <div>
         <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-          <Settings className="w-7 h-7 text-malandro-red" />
+          <Settings className="w-7 h-7 text-billanga-primary" />
           Configuración del Sistema
         </h2>
-        <p className="text-sm text-malandro-gray">Ajusta los parámetros operativos y preferencias generales de la sucursal.</p>
+        <p className="text-sm text-billanga-gray">Ajusta los parámetros operativos y preferencias generales de la sucursal.</p>
       </div>
 
       {dbError && (
@@ -161,39 +161,39 @@ export default function ConfiguracionPage() {
           {/* Parámetros Operativos */}
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl p-6 space-y-6">
             <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-[#2a2a2c] pb-3">
-              <DollarSign className="w-5 h-5 text-malandro-red" />
+              <DollarSign className="w-5 h-5 text-billanga-primary" />
               Operaciones de Mesa
             </h3>
             
             <div className="space-y-4">
               <div>
-                <label className="block text-xs font-bold text-malandro-gray uppercase tracking-wider mb-2">
+                <label className="block text-xs font-bold text-billanga-gray uppercase tracking-wider mb-2">
                   Nombre del Establecimiento
                 </label>
                 <input 
                   type="text" 
                   value={billarName}
                   onChange={(e) => setBillarName(e.target.value)}
-                  className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-malandro-red focus:outline-none transition-colors"
+                  className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none transition-colors"
                   required
                 />
               </div>
 
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <label className="block text-xs font-bold text-malandro-gray uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-bold text-billanga-gray uppercase tracking-wider mb-2">
                     Moneda Local
                   </label>
                   <input 
                     type="text" 
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
-                    className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-malandro-red focus:outline-none transition-colors"
+                    className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none transition-colors"
                     required
                   />
                 </div>
                 <div>
-                  <label className="block text-xs font-bold text-malandro-gray uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-bold text-billanga-gray uppercase tracking-wider mb-2">
                     Tarifa Hora Mesa (Padrón)
                   </label>
                   <input 
@@ -201,7 +201,7 @@ export default function ConfiguracionPage() {
                     step="0.01"
                     value={hourlyRate}
                     onChange={(e) => setHourlyRate(parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-malandro-red focus:outline-none transition-colors font-mono"
+                    className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none transition-colors font-mono"
                     required
                   />
                 </div>
@@ -212,7 +212,7 @@ export default function ConfiguracionPage() {
           {/* Preferencias del Sistema */}
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl p-6 space-y-6">
             <h3 className="text-lg font-bold text-white flex items-center gap-2 border-b border-[#2a2a2c] pb-3">
-              <Bell className="w-5 h-5 text-malandro-red" />
+              <Bell className="w-5 h-5 text-billanga-primary" />
               Notificaciones y Preferencias
             </h3>
             
@@ -220,7 +220,7 @@ export default function ConfiguracionPage() {
               <div className="flex items-center justify-between p-3.5 bg-black/25 rounded-xl border border-[#2a2a2c]/60">
                 <div>
                   <h4 className="text-sm font-semibold text-white">Alertas Sonoras</h4>
-                  <p className="text-xs text-malandro-gray">Emitir sonidos en POS y al abrir/cerrar mesas.</p>
+                  <p className="text-xs text-billanga-gray">Emitir sonidos en POS y al abrir/cerrar mesas.</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
@@ -229,14 +229,14 @@ export default function ConfiguracionPage() {
                     onChange={(e) => setSoundsEnabled(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-malandro-red"></div>
+                  <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-billanga-primary"></div>
                 </label>
               </div>
 
               <div className="flex items-center justify-between p-3.5 bg-black/25 rounded-xl border border-[#2a2a2c]/60">
                 <div>
                   <h4 className="text-sm font-semibold text-white">Impresión Automática</h4>
-                  <p className="text-xs text-malandro-gray">Imprimir factura POS inmediatamente al cobrar.</p>
+                  <p className="text-xs text-billanga-gray">Imprimir factura POS inmediatamente al cobrar.</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
@@ -245,14 +245,14 @@ export default function ConfiguracionPage() {
                     onChange={(e) => setAutoPrint(e.target.checked)}
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-malandro-red"></div>
+                  <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-billanga-primary"></div>
                 </label>
               </div>
 
               <div className="flex items-center justify-between p-3.5 bg-black/25 rounded-xl border border-[#2a2a2c]/60">
                 <div>
                   <h4 className="text-sm font-semibold text-white">Modo Nocturno</h4>
-                  <p className="text-xs text-malandro-gray">Mantener estética oscura premium del dashboard.</p>
+                  <p className="text-xs text-billanga-gray">Mantener estética oscura premium del dashboard.</p>
                 </div>
                 <label className="relative inline-flex items-center cursor-pointer">
                   <input 
@@ -261,7 +261,7 @@ export default function ConfiguracionPage() {
                     disabled
                     className="sr-only peer"
                   />
-                  <div className="w-11 h-6 bg-zinc-850 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all bg-malandro-red opacity-60 cursor-not-allowed"></div>
+                  <div className="w-11 h-6 bg-zinc-850 rounded-full after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all bg-billanga-primary opacity-60 cursor-not-allowed"></div>
                 </label>
               </div>
             </div>
@@ -270,8 +270,8 @@ export default function ConfiguracionPage() {
         </div>
 
         {/* Info Box */}
-        <div className="p-4 bg-malandro-red/5 border border-malandro-red/10 rounded-xl flex gap-3 text-xs text-malandro-gray">
-          <Info className="w-5 h-5 text-malandro-red shrink-0" />
+        <div className="p-4 bg-billanga-primary/5 border border-billanga-primary/10 rounded-xl flex gap-3 text-xs text-billanga-gray">
+          <Info className="w-5 h-5 text-billanga-primary shrink-0" />
           <p className="leading-relaxed">
             Las tarifas y parámetros de cobro configurados aquí afectan en tiempo real al Punto de Venta (POS) y a la facturación del panel de control de mesas en juego. Asegúrate de guardar los cambios antes de salir.
           </p>
@@ -280,7 +280,7 @@ export default function ConfiguracionPage() {
         <button
           type="submit"
           disabled={saving}
-          className="flex items-center gap-2 px-6 py-3 bg-malandro-red hover:bg-[#b81d24] text-white rounded-xl text-sm font-bold shadow-lg shadow-malandro-red/10 transition-colors disabled:opacity-50"
+          className="flex items-center gap-2 px-6 py-3 bg-billanga-primary hover:bg-[#b81d24] text-white rounded-xl text-sm font-bold shadow-lg shadow-billanga-primary/10 transition-colors disabled:opacity-50"
         >
           <Save className="w-4.5 h-4.5" />
           {saving ? "Guardando Ajustes..." : "Guardar Configuración"}
