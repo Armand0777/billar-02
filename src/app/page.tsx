@@ -408,7 +408,7 @@ export default function HomePage() {
                         <div key={item.producto.id_producto} className="flex gap-3 bg-[#1a1a1c] border border-[#2a2a2c] p-3 rounded-2xl items-center shadow-sm">
                           <div className="w-16 h-16 bg-black rounded-xl flex-shrink-0 relative overflow-hidden flex items-center justify-center">
                             {item.producto.imagen_url ? (
-                              <Image src={item.producto.imagen_url} alt={item.producto.nombre} fill className="object-cover" />
+                              <img src={item.producto.imagen_url} alt={item.producto.nombre} className="absolute inset-0 w-full h-full object-cover" />
                             ) : (
                               <Beer className="w-6 h-6 text-billanga-gray" />
                             )}
