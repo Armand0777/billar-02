@@ -7,7 +7,7 @@ import { ArrowLeft } from "lucide-react";
 export default function TerminosPage() {
   return (
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans">
-      <Navbar cartCount={0} />
+      <Navbar />
 
       <main className="flex-1 max-w-4xl mx-auto px-6 py-24 w-full relative z-0">
         <div className="mb-10">
