@@ -118,8 +118,8 @@ export default function MesasPage() {
 
   useEffect(() => { loadData(); }, []);
 
-  const loadData = async () => {
-    setLoading(true);
+  const loadData = async (isSilent = false) => {
+    if (!isSilent) setLoading(true);
     setDbStateError("");
     try {
       const { data: { user }, error: authError } = await supabase.auth.getUser();
@@ -187,7 +187,7 @@ export default function MesasPage() {
     } catch (err: any) {
       setDbStateError(err.message || "Error al conectar con la base de datos.");
     } finally {
-      setLoading(false);
+      if (!isSilent) setLoading(false);
     }
   };
 
@@ -309,9 +309,25 @@ export default function MesasPage() {
       
     if (!error) {
       setPosSesion({ ...posSesion, tiempo_fijo_minutos: newMinutes });
-      loadData();
+      loadData(true);
     } else {
       alert("Error al agregar tiempo: " + error.message);
+    }
+  };
+
+  const handleConvertToAbierto = async () => {
+    if (!posSesion) return;
+    
+    const { error } = await supabase
+      .from("sesiones_mesa")
+      .update({ modalidad: "abierto" })
+      .eq("id_sesion", posSesion.id_sesion);
+      
+    if (!error) {
+      setPosSesion({ ...posSesion, modalidad: "abierto" });
+      loadData(true);
+    } else {
+      alert("Error al cambiar la modalidad: " + error.message);
     }
   };
 
@@ -847,10 +863,13 @@ export default function MesasPage() {
                   
                   {/* Extensiones de Tiempo (Solo FIJO) */}
                   {posSesion.modalidad === 'fijo' && (
-                    <div className="flex gap-2 mt-2 pt-2 border-t border-[#2a2a2c]/50">
-                      <button onClick={() => handleAddTime(15)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 15 min</button>
-                      <button onClick={() => handleAddTime(30)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 30 min</button>
-                      <button onClick={() => handleAddTime(60)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 1 hora</button>
+                    <div className="flex flex-col gap-2 mt-2 pt-2 border-t border-[#2a2a2c]/50">
+                      <div className="flex gap-2">
+                        <button onClick={() => handleAddTime(15)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 15 min</button>
+                        <button onClick={() => handleAddTime(30)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 30 min</button>
+                        <button onClick={() => handleAddTime(60)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 1 hora</button>
+                      </div>
+                      <button onClick={handleConvertToAbierto} className="w-full bg-[#1a1a1c] hover:bg-billanga-primary/10 border border-[#2a2a2c] hover:border-billanga-primary/50 text-billanga-primary text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1">Cobrar solo Consumido</button>
                     </div>
                   )}
                 </div>
