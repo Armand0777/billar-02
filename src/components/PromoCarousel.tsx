@@ -95,6 +95,24 @@ export default function PromoCarousel({ novedades }: PromoCarouselProps) {
 
   return (
     <div className="w-full relative group bg-black h-[70vh] md:h-[85vh]">
+      {/* Left/Right Navigation Arrows on Edges */}
+      <div className="absolute inset-y-0 left-4 md:left-8 flex items-center z-20">
+        <button 
+          onClick={handlePrev}
+          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+        >
+          <ChevronLeft className="w-6 h-6 md:w-8 md:h-8" />
+        </button>
+      </div>
+      <div className="absolute inset-y-0 right-4 md:right-8 flex items-center z-20">
+        <button 
+          onClick={handleNext}
+          className="w-10 h-10 md:w-12 md:h-12 flex items-center justify-center text-white/50 hover:text-white transition-colors"
+        >
+          <ChevronRight className="w-6 h-6 md:w-8 md:h-8" />
+        </button>
+      </div>
+
       {/* Background Image */}
       <div className="absolute inset-0 w-full h-full">
         {currentItem.imagen_url && (
@@ -102,7 +120,7 @@ export default function PromoCarousel({ novedades }: PromoCarouselProps) {
             src={currentItem.imagen_url}
             alt="Fondo borroso"
             fill
-            className="object-cover blur-3xl opacity-40 scale-110"
+            className="object-cover blur-3xl opacity-20 scale-110"
           />
         )}
         {currentItem.imagen_url ? (
@@ -110,60 +128,36 @@ export default function PromoCarousel({ novedades }: PromoCarouselProps) {
             src={currentItem.imagen_url}
             alt={currentItem.titulo}
             fill
-            className="object-contain transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
+            className="object-cover md:object-contain transition-transform duration-1000 ease-out group-hover:scale-[1.02]"
             priority
           />
         ) : (
-          <div className="w-full h-full bg-gradient-to-br from-neutral-900 to-black flex items-center justify-center">
+          <div className="w-full h-full bg-[#0a0a0a] flex items-center justify-center">
             <Sparkles className="w-24 h-24 text-white/10" />
           </div>
         )}
-        {/* Gradient Overlay for text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/50 to-transparent" />
-        <div className="absolute inset-0 bg-gradient-to-r from-black/80 via-black/20 to-transparent" />
+        {/* Subtle Vignette / Gradient Overlay */}
+        <div className="absolute inset-0 bg-gradient-to-t from-black via-black/20 to-transparent" />
+        <div className="absolute inset-0 bg-black/30" />
       </div>
 
-      {/* Content Overlay */}
-      <div className="absolute inset-0 flex flex-col justify-end px-6 md:px-16 pb-16 md:pb-24 max-w-7xl mx-auto w-full z-10">
-        <div className="max-w-2xl animate-in slide-in-from-bottom-10 fade-in duration-700 fill-mode-both" key={current}>
-          <div className="flex items-center gap-3 mb-4">
-            <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold uppercase tracking-widest ${getBadgeStyle(currentItem.tipo)} backdrop-blur-sm border`}>
-              <span className="flex shrink-0">
-                {getBadgeIcon(currentItem.tipo)}
-              </span>
-              <span>{currentItem.tipo}</span>
-            </span>
-            <span className="text-xs font-medium text-white/60 tracking-wider">
-              {new Date(currentItem.publicado_en).toLocaleDateString("es-ES")}
-            </span>
-          </div>
+      {/* Content Overlay (Centered at Bottom) */}
+      <div className="absolute inset-0 flex flex-col justify-end items-center px-12 md:px-24 pb-20 md:pb-28 max-w-7xl mx-auto w-full z-10 text-center pointer-events-none">
+        <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-5 duration-700 pointer-events-auto" key={current}>
           
-          <h2 className="text-2xl md:text-3xl lg:text-4xl font-extrabold text-white leading-tight tracking-tight mb-2 drop-shadow-lg">
+          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight mb-2 drop-shadow-2xl">
             {currentItem.titulo}
           </h2>
           
-          <p className="text-xs md:text-sm text-white/90 leading-relaxed font-medium mb-6 max-w-lg text-balance drop-shadow">
+          <p className="text-sm md:text-base text-white/70 font-medium mb-6 max-w-xl mx-auto drop-shadow-md line-clamp-2 md:line-clamp-none">
             {currentItem.contenido}
           </p>
 
-          <div className="flex items-center gap-3">
-            <button className="bg-billanga-primary hover:bg-white hover:text-black text-white px-6 py-2.5 rounded-full text-sm font-bold tracking-wide transition-all duration-300">
+          <div className="flex justify-center">
+            <button className="bg-billanga-primary hover:bg-[#b81d24] text-white px-8 py-3 rounded-full text-sm md:text-base font-bold tracking-wide transition-all duration-300 shadow-[0_0_15px_rgba(0,230,118,0.3)] hover:scale-105 flex items-center gap-2">
+              <Sparkles className="w-4 h-4" />
               Ver Detalles
             </button>
-            <div className="flex items-center gap-2 ml-2">
-              <button 
-                onClick={handlePrev}
-                className="w-10 h-10 rounded-full border border-white/20 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all backdrop-blur-sm"
-              >
-                <ChevronLeft className="w-4 h-4" />
-              </button>
-              <button 
-                onClick={handleNext}
-                className="w-10 h-10 rounded-full border border-white/20 hover:bg-white hover:text-black text-white flex items-center justify-center transition-all backdrop-blur-sm"
-              >
-                <ChevronRight className="w-4 h-4" />
-              </button>
-            </div>
           </div>
         </div>
       </div>
