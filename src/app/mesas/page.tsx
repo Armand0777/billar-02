@@ -64,7 +64,7 @@ export default function MesasDisponiblesPage() {
 
       // Fetch Sesiones Abiertas
       const { data: sesionesData } = await supabase
-        .from("sesiones_mesas")
+        .from("sesiones_mesa")
         .select("id_mesa, estado")
         .eq("estado", "abierta");
 
