@@ -145,11 +145,11 @@ export default function PromoCarousel({ novedades }: PromoCarouselProps) {
       <div className="absolute inset-0 flex flex-col justify-end items-center px-12 md:px-24 pb-20 md:pb-28 max-w-7xl mx-auto w-full z-10 text-center pointer-events-none">
         <div className="max-w-3xl animate-in fade-in slide-in-from-bottom-5 duration-700 pointer-events-auto" key={current}>
           
-          <h2 className="text-3xl md:text-5xl lg:text-6xl font-black text-white leading-tight tracking-tight mb-2 drop-shadow-2xl">
+          <h2 className="text-2xl md:text-4xl lg:text-4xl font-bold text-white leading-tight tracking-tight mb-2 drop-shadow-2xl">
             {currentItem.titulo}
           </h2>
           
-          <p className="text-sm md:text-base text-white/70 font-medium mb-6 max-w-xl mx-auto drop-shadow-md line-clamp-2 md:line-clamp-none">
+          <p className="text-xs md:text-sm text-white/80 font-medium mb-6 max-w-lg mx-auto drop-shadow-md line-clamp-2 md:line-clamp-none">
             {currentItem.contenido}
           </p>
 
