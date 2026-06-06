@@ -77,7 +77,7 @@ export default function PedidosMonitorPage() {
 
   // Clasificar pedidos por columnas (Kanban)
   const pendientes = pedidos.filter(p => p.estado === 'pendiente');
-  const enPreparacion = pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'enviado');
+  const enPreparacion = pedidos.filter(p => p.estado === 'preparando' || p.estado === 'listo');
   const historial = pedidos.filter(p => p.estado === 'entregado' || p.estado === 'cancelado');
 
   if (loading) {
@@ -142,13 +142,13 @@ export default function PedidosMonitorPage() {
               <button onClick={() => updateEstado(p.id_pedido, 'cancelado')} className="py-2 bg-[#2a2a2c] hover:bg-red-500/20 text-billanga-gray hover:text-red-500 rounded-xl text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
                 <XCircle className="w-3.5 h-3.5" /> Cancelar
               </button>
-              <button onClick={() => updateEstado(p.id_pedido, 'confirmado')} className="py-2 bg-billanga-primary hover:bg-[#b81d24] text-white rounded-xl text-xs font-bold shadow-lg shadow-billanga-primary/20 transition-all active:scale-95 flex items-center justify-center gap-1.5">
+              <button onClick={() => updateEstado(p.id_pedido, 'preparando')} className="py-2 bg-billanga-primary hover:bg-[#b81d24] text-white rounded-xl text-xs font-bold shadow-lg shadow-billanga-primary/20 transition-all active:scale-95 flex items-center justify-center gap-1.5">
                 <ChefHat className="w-3.5 h-3.5" /> Preparar
               </button>
             </>
           )}
 
-          {(p.estado === 'confirmado' || p.estado === 'enviado') && (
+          {(p.estado === 'preparando' || p.estado === 'listo') && (
             <button onClick={() => updateEstado(p.id_pedido, 'entregado')} className="col-span-2 py-2.5 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-sm font-bold shadow-lg shadow-emerald-500/20 transition-all active:scale-95 flex items-center justify-center gap-1.5">
               <PackageCheck className="w-4 h-4" /> Entregado en Mesa
             </button>

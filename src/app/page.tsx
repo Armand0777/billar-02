@@ -352,7 +352,7 @@ export default function HomePage() {
                     {cart.length > 0 ? cartItemCount : misPedidos.length}
                   </span>
                 )}
-                {misPedidos.some(p => p.estado === 'pendiente' || p.estado === 'confirmado' || p.estado === 'enviado') && (
+                {misPedidos.some(p => p.estado === 'pendiente' || p.estado === 'preparando' || p.estado === 'listo') && (
                   <span className="absolute -top-2 -left-2 flex h-4 w-4">
                     <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
                     <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-500 border-2 border-billanga-primary"></span>
@@ -439,17 +439,17 @@ export default function HomePage() {
                             <span className="text-xs font-bold text-billanga-gray">Pedido a las {new Date(pedido.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
                             <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${
                               pedido.estado === 'pendiente' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
-                              pedido.estado === 'confirmado' || pedido.estado === 'enviado' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                              pedido.estado === 'preparando' || pedido.estado === 'listo' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
                               pedido.estado === 'entregado' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
                               'bg-red-500/10 text-red-500 border-red-500/20'
                             }`}>
                               {pedido.estado === 'pendiente' && <Clock className="w-3 h-3" />}
-                              {(pedido.estado === 'confirmado' || pedido.estado === 'enviado') && <ChefHat className="w-3 h-3" />}
+                              {(pedido.estado === 'preparando' || pedido.estado === 'listo') && <ChefHat className="w-3 h-3" />}
                               {pedido.estado === 'entregado' && <CheckCircle className="w-3 h-3" />}
                               {pedido.estado === 'cancelado' && <XCircle className="w-3 h-3" />}
                               
                               {pedido.estado === 'pendiente' ? 'Esperando al Barman...' :
-                               (pedido.estado === 'confirmado' || pedido.estado === 'enviado') ? 'En Preparación' :
+                               (pedido.estado === 'preparando' || pedido.estado === 'listo') ? 'En Preparación' :
                                pedido.estado === 'entregado' ? 'Entregado en mesa' : 'Cancelado'}
                             </span>
                           </div>
