@@ -668,31 +668,31 @@ export default function MesasPage() {
                   </>
                 )}
 
-                <div className="z-10 bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-4 flex flex-col items-center justify-center w-[85%] text-center shadow-2xl transition-all">
-                  <h3 className="font-black text-white text-lg sm:text-xl uppercase tracking-widest mb-0.5 line-clamp-1">{mesa.nombre || `Mesa ${mesa.numero}`}</h3>
-                  <span className="text-[10px] text-white/70 uppercase font-bold tracking-widest mb-3">{mesa.tipo}</span>
+                <div className="z-10 bg-black/50 backdrop-blur-md border border-white/10 rounded-2xl p-2 sm:p-3 flex flex-col items-center justify-center w-[85%] text-center shadow-2xl transition-all h-[80%] overflow-hidden">
+                  <h3 className="font-black text-white text-base sm:text-xl uppercase tracking-widest mb-0 line-clamp-1">{mesa.nombre || `Mesa ${mesa.numero}`}</h3>
+                  <span className="text-[9px] sm:text-[10px] text-white/70 uppercase font-bold tracking-widest mb-2">{mesa.tipo}</span>
                   
                   {isEnUso ? (
-                    <div className="w-full border-t border-white/20 pt-3 flex flex-col items-center">
-                      <div className="flex items-center justify-center gap-2 mb-1">
+                    <div className="w-full border-t border-white/20 pt-2 flex flex-col items-center justify-center">
+                      <div className="flex items-center justify-center gap-1.5 mb-0.5">
                          {isPartida ? (
-                           <Check className="w-4 h-4 text-white" />
+                           <Check className="w-3 h-3 sm:w-4 sm:h-4 text-white" />
                          ) : (
-                           <Timer className={`w-4 h-4 text-white ${isTimeUp ? 'animate-bounce text-orange-400' : 'animate-pulse'}`} />
+                           <Timer className={`w-3 h-3 sm:w-4 sm:h-4 text-white ${isTimeUp ? 'animate-bounce text-orange-400' : 'animate-pulse'}`} />
                          )}
-                         <span className={`font-mono text-xl sm:text-2xl font-bold tracking-wider drop-shadow-md ${isTimeUp ? 'text-orange-400' : 'text-white'}`}>
+                         <span className={`font-mono text-lg sm:text-2xl font-bold tracking-wider drop-shadow-md ${isTimeUp ? 'text-orange-400' : 'text-white'}`}>
                            {isTimeUp ? "¡TIEMPO!" : timeString}
                          </span>
                       </div>
-                      <div className="text-white/60 text-[10px] uppercase font-bold tracking-wider mb-1">{tarifaNombre}</div>
-                      <div className="text-white font-black text-lg sm:text-xl drop-shadow-md">
+                      <div className="text-white/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-wider mb-0.5 truncate w-full">{tarifaNombre}</div>
+                      <div className="text-white font-black text-base sm:text-xl drop-shadow-md">
                         Bs. {accumulatedValue}
                       </div>
                     </div>
                   ) : (
-                    <div className="w-full border-t border-white/10 pt-3 flex items-center justify-center gap-2 text-white/50">
-                      <Check className="w-4 h-4" />
-                      <span className="text-xs font-bold uppercase tracking-wider">Mesa Libre</span>
+                    <div className="w-full border-t border-white/10 pt-2 flex items-center justify-center gap-2 text-white/50">
+                      <Check className="w-3 h-3 sm:w-4 sm:h-4" />
+                      <span className="text-[10px] sm:text-xs font-bold uppercase tracking-wider">Mesa Libre</span>
                     </div>
                   )}
                 </div>
