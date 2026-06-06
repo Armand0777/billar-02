@@ -9,7 +9,7 @@ export default function TorneosPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto px-6 py-24 w-full relative z-0">
+      <main className="flex-1 flex flex-col items-center justify-center max-w-4xl mx-auto px-6 pt-32 pb-24 w-full relative z-0">
         <div className="w-full mb-10">
           <Link href="/" className="inline-flex items-center text-billanga-primary hover:text-white transition-colors gap-2">
             <ArrowLeft className="w-5 h-5" />

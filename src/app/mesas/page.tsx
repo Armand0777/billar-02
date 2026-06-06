@@ -95,7 +95,7 @@ export default function MesasDisponiblesPage() {
     <div className="min-h-screen bg-[#0a0a0a] text-white flex flex-col font-sans">
       <Navbar />
 
-      <main className="flex-1 max-w-6xl mx-auto px-4 md:px-6 py-20 w-full relative z-0">
+      <main className="flex-1 max-w-6xl mx-auto px-4 md:px-6 pt-32 pb-20 w-full relative z-0">
         <div className="mb-8 flex justify-between items-center">
           <Link href="/" className="inline-flex items-center text-billanga-primary hover:text-white transition-colors gap-2">
             <ArrowLeft className="w-5 h-5" />
