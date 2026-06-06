@@ -155,7 +155,7 @@ export default function BottomDock() {
                 <span className="text-xs font-semibold text-white">Instagram</span>
               </a>
               <a 
-                href="https://wa.me/584121234567" 
+                href="https://wa.me/59172665231" 
                 target="_blank" 
                 rel="noreferrer"
                 className="flex flex-col items-center gap-2 p-3 bg-white/5 hover:bg-white/10 rounded-xl transition-all border border-white/5 group hover:border-emerald-500/40"

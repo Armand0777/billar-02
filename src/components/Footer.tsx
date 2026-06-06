@@ -72,10 +72,15 @@ export default function Footer() {
             <ul className="space-y-5 text-sm">
               <li className="flex items-start gap-3">
                 <MapPin className="w-5 h-5 text-billanga-primary flex-shrink-0 mt-0.5" />
-                <span className="leading-relaxed">
-                  Av. Principal #123 / Zona Sur<br />
-                  A media cuadra de la plaza.
-                </span>
+                <a 
+                  href="https://www.google.com/maps/search/?api=1&query=-17.797871,-63.108356"
+                  target="_blank"
+                  rel="noreferrer"
+                  className="leading-relaxed hover:text-billanga-primary transition-colors underline-offset-4 hover:underline"
+                >
+                  Av Libertadores 8vo anillo / Zona Este<br />
+                  alado del lavadero el Adulau
+                </a>
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-billanga-primary flex-shrink-0" />
