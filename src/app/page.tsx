@@ -302,9 +302,9 @@ export default function HomePage() {
         {filteredProducts.map(prod => (
           <div key={prod.id_producto} className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl overflow-hidden flex flex-col h-full hover:scale-[1.02] active:scale-95 transition-transform shadow-lg group">
             {/* Imagen del producto */}
-            <div className="relative w-full aspect-square bg-[#121212] border-b border-[#2a2a2c] flex items-center justify-center p-4">
+            <div className="relative w-full aspect-square bg-[#121212] border-b border-[#2a2a2c] flex items-center justify-center p-4 overflow-hidden">
               {prod.imagen_url ? (
-                <Image src={prod.imagen_url} alt={prod.nombre} fill className="object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
+                <img src={prod.imagen_url} alt={prod.nombre} className="absolute inset-0 w-full h-full object-cover opacity-90 group-hover:opacity-100 transition-opacity" />
               ) : (
                 <Beer className="w-12 h-12 text-[#2a2a2c]" />
               )}
