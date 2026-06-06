@@ -309,7 +309,7 @@ export default function MesasPage() {
       
     if (!error) {
       setPosSesion({ ...posSesion, tiempo_fijo_minutos: newMinutes });
-      loadSesionesActivas();
+      loadData();
     } else {
       alert("Error al agregar tiempo: " + error.message);
     }
