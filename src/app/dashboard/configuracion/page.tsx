@@ -239,7 +239,7 @@ export default function ConfiguracionPage() {
                 />
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-xs font-bold text-billanga-gray uppercase tracking-wider mb-2">
                     Moneda Local
@@ -249,19 +249,6 @@ export default function ConfiguracionPage() {
                     value={currency}
                     onChange={(e) => setCurrency(e.target.value)}
                     className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none transition-colors"
-                    required
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs font-bold text-billanga-gray uppercase tracking-wider mb-2">
-                    Tarifa Hora Mesa (Padrón)
-                  </label>
-                  <input 
-                    type="number" 
-                    step="0.01"
-                    value={hourlyRate}
-                    onChange={(e) => setHourlyRate(parseFloat(e.target.value) || 0)}
-                    className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none transition-colors font-mono"
                     required
                   />
                 </div>
