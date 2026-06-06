@@ -4,9 +4,9 @@ import { useState, useEffect, useRef } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
-  LayoutDashboard, ShoppingCart, Wallet, Users, Clock, Bell, 
-  MenuSquare, Package, BarChart3, Store, UserCircle, Settings, LogOut, Menu, X, CircleDot,
-  ShieldAlert, ArrowLeft, Eye, Trophy, UserCheck, LayoutTemplate, Utensils
+  LogOut, User as UserIcon, Settings, Menu, X, LayoutDashboard,
+  Users, CircleDot, ShoppingCart, Wallet, UserCheck, Package, BarChart3,
+  Store, Utensils, Clock, Bell, Trash2, LayoutTemplate, Trophy, Truck
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
@@ -147,7 +147,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard/clientes", label: "Clientes", icon: UserCheck, minLevel: 2 },
     { href: "/dashboard/campeonatos", label: "Campeonatos", icon: Trophy, minLevel: 3 },
     { href: "/dashboard/avisos", label: "Portada / Ofertas", icon: LayoutTemplate, minLevel: 1 },
-    { href: "/dashboard/menu", label: "Menú", icon: MenuSquare, minLevel: 3 },
+    { href: "/dashboard/compras", label: "Compras", icon: Truck, minLevel: 3 },
     { href: "/dashboard/inventario", label: "Inventario", icon: Package, minLevel: 3 },
     { href: "/dashboard/reportes", label: "Reportes", icon: BarChart3, minLevel: 3 },
     { href: "/dashboard/sucursales", label: "Sucursales", icon: Store, minLevel: 4 },
