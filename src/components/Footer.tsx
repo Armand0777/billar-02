@@ -52,7 +52,7 @@ export default function Footer() {
             <h3 className="text-white font-bold text-lg mb-6">Nuestros Servicios</h3>
             <ul className="space-y-4 text-sm font-medium">
               <li>
-                <Link href="/quienes-somos" className="hover:text-white transition-colors">Mesas Normales</Link>
+                <Link href="/mesas" className="hover:text-white transition-colors">Mesas Normales</Link>
               </li>
               <li>
                 <Link href="/#menu" className="hover:text-white transition-colors">Snacks y Comida Rápida</Link>
