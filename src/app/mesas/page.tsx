@@ -221,7 +221,7 @@ export default function MesasDisponiblesPage() {
           {/* Botón CTA Whatsapp */}
           <div className="pt-10 flex justify-center">
              <a 
-              href="https://wa.me/59170000000" 
+              href="https://wa.me/59172665231" 
               target="_blank" 
               rel="noreferrer"
               className="px-8 py-4 bg-billanga-primary hover:bg-[#b81d24] text-white rounded-2xl font-black text-lg transition-all shadow-[0_0_20px_rgba(0,230,118,0.3)] hover:scale-105"

@@ -61,7 +61,7 @@ export default function Footer() {
                 <Link href="/#menu" className="hover:text-white transition-colors">Bebidas Nacionales e Importadas</Link>
               </li>
               <li>
-                <a href="https://wa.me/59170000000" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Reservas para Cumpleaños</a>
+                <a href="https://wa.me/59172665231" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Reservas para Cumpleaños</a>
               </li>
             </ul>
           </div>
@@ -79,7 +79,7 @@ export default function Footer() {
               </li>
               <li className="flex items-center gap-3">
                 <Phone className="w-5 h-5 text-billanga-primary flex-shrink-0" />
-                <span>+591 7000 0000</span>
+                <span>+591 72665231</span>
               </li>
             </ul>
           </div>
