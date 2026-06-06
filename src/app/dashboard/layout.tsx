@@ -150,7 +150,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     { href: "/dashboard/menu", label: "Menú", icon: MenuSquare, minLevel: 3 },
     { href: "/dashboard/inventario", label: "Inventario", icon: Package, minLevel: 3 },
     { href: "/dashboard/reportes", label: "Reportes", icon: BarChart3, minLevel: 3 },
-    { href: "/dashboard/sucursales", label: "Sucursales", icon: Store, minLevel: 5 },
+    { href: "/dashboard/sucursales", label: "Sucursales", icon: Store, minLevel: 4 },
   ];
 
   const userLevel = userProfile?.rolNivel || 0;

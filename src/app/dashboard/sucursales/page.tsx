@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   Building2, MapPin, Phone, RefreshCw, AlertTriangle,
-  PlusCircle, Edit3, X, Save, Check
+  PlusCircle, Edit3, X, Save, Check, TrendingUp, Users, LayoutGrid
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 
@@ -14,6 +14,10 @@ interface Sucursal {
   telefono: string | null;
   activo: boolean;
   created_at: string;
+  ventasHoy?: number;
+  mesasActivas?: number;
+  mesasTotales?: number;
+  empleados?: {nombre: string, rol: string}[];
 }
 
 export default function SucursalesPage() {
@@ -21,10 +25,13 @@ export default function SucursalesPage() {
   const [dbError, setDbError] = useState("");
   const [sucursales, setSucursales] = useState<Sucursal[]>([]);
 
-  // Modal
+  // Modal CRUD
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingSucursal, setEditingSucursal] = useState<Sucursal | null>(null);
   const [formData, setFormData] = useState({ nombre: "", direccion: "", telefono: "" });
+
+  // Modal Staff
+  const [staffModalSucursal, setStaffModalSucursal] = useState<Sucursal | null>(null);
 
   const supabase = createClient();
 
@@ -36,7 +43,46 @@ export default function SucursalesPage() {
     try {
       const { data, error } = await supabase.from("sucursales").select("*").order("created_at");
       if (error) throw error;
-      setSucursales(data || []);
+      
+      const sucursalesData = data || [];
+      
+      // Obtener datos complementarios
+      const today = new Date();
+      today.setHours(0,0,0,0);
+      
+      // Consultamos ventas de hoy, mesas, y empleados
+      const [ventasRes, mesasRes, empleadosRes] = await Promise.all([
+        supabase.from("ventas").select("id_sucursal, total").gte("created_at", today.toISOString()),
+        supabase.from("mesas").select("id_sucursal, activo"),
+        supabase.from("usuario_sucursal").select("id_sucursal, usuarios(nombre), roles(nombre)").eq("activo", true)
+      ]);
+      
+      const ventas = ventasRes.data || [];
+      const mesas = mesasRes.data || [];
+      const empleados = empleadosRes.data || [];
+      
+      const enhancedSucursales = sucursalesData.map(suc => {
+        const sucVentas = ventas.filter(v => v.id_sucursal === suc.id_sucursal).reduce((acc, curr) => acc + Number(curr.total), 0);
+        const sucMesas = mesas.filter(m => m.id_sucursal === suc.id_sucursal);
+        
+        // Formatear empleados (manejo seguro de la relación)
+        const sucEmpleados = empleados
+          .filter(e => e.id_sucursal === suc.id_sucursal)
+          .map(e => ({
+            nombre: (e.usuarios as any)?.nombre || "Desconocido",
+            rol: (e.roles as any)?.nombre || "Sin Rol"
+          }));
+        
+        return {
+          ...suc,
+          ventasHoy: sucVentas,
+          mesasActivas: sucMesas.filter(m => m.activo).length,
+          mesasTotales: sucMesas.length,
+          empleados: sucEmpleados
+        };
+      });
+      
+      setSucursales(enhancedSucursales);
     } catch (err: any) {
       console.error(err);
       setDbError(err.message);
@@ -103,9 +149,11 @@ export default function SucursalesPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {sucursales.map(suc => (
-          <div key={suc.id_sucursal} className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5 relative overflow-hidden group">
-            {!suc.activo && <div className="absolute inset-0 bg-black/50 z-10"></div>}
-            <div className="flex justify-between items-start relative z-20">
+          <div key={suc.id_sucursal} className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl flex flex-col relative overflow-hidden group">
+            {!suc.activo && <div className="absolute inset-0 bg-black/60 z-10"></div>}
+            
+            {/* Header */}
+            <div className="p-5 border-b border-[#2a2a2c] flex justify-between items-start relative z-20">
               <div>
                 <h3 className="font-bold text-xl text-white">{suc.nombre}</h3>
                 <div className={`mt-1 inline-block px-2 py-0.5 rounded-full text-[10px] font-bold uppercase ${suc.activo ? "bg-green-500/10 text-green-500" : "bg-red-500/10 text-red-400"}`}>
@@ -121,15 +169,56 @@ export default function SucursalesPage() {
                 </button>
               </div>
             </div>
-            <div className="mt-6 space-y-3 relative z-20">
-              <div className="flex items-start gap-3 text-sm">
-                <MapPin className="w-4 h-4 text-billanga-gray shrink-0 mt-0.5" />
-                <span className="text-billanga-gray">{suc.direccion || "Sin dirección registrada"}</span>
+            
+            {/* Body */}
+            <div className="p-5 space-y-4 relative z-20 flex-1">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="bg-black/20 p-3 rounded-lg border border-[#2a2a2c]/50">
+                  <div className="flex items-center gap-1.5 text-billanga-gray mb-1">
+                    <TrendingUp className="w-3.5 h-3.5" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Ventas Hoy</span>
+                  </div>
+                  <div className="text-lg font-bold text-billanga-primary">
+                    Bs. {(suc.ventasHoy || 0).toFixed(2)}
+                  </div>
+                </div>
+                <div className="bg-black/20 p-3 rounded-lg border border-[#2a2a2c]/50">
+                  <div className="flex items-center gap-1.5 text-billanga-gray mb-1">
+                    <LayoutGrid className="w-3.5 h-3.5" />
+                    <span className="text-xs font-bold uppercase tracking-wider">Mesas</span>
+                  </div>
+                  <div className="text-lg font-bold text-white">
+                    {suc.mesasActivas || 0} <span className="text-sm text-billanga-gray font-normal">/ {suc.mesasTotales || 0}</span>
+                  </div>
+                </div>
               </div>
-              <div className="flex items-center gap-3 text-sm">
-                <Phone className="w-4 h-4 text-billanga-gray shrink-0" />
-                <span className="text-billanga-gray">{suc.telefono || "Sin teléfono"}</span>
+
+              <div className="space-y-2">
+                <div className="flex items-start gap-3 text-sm">
+                  <MapPin className="w-4 h-4 text-billanga-gray shrink-0 mt-0.5" />
+                  <span className="text-billanga-gray line-clamp-1">{suc.direccion || "Sin dirección"}</span>
+                </div>
+                <div className="flex items-center gap-3 text-sm">
+                  <Phone className="w-4 h-4 text-billanga-gray shrink-0" />
+                  <span className="text-billanga-gray">{suc.telefono || "Sin teléfono"}</span>
+                </div>
               </div>
+            </div>
+
+            {/* Footer - Empleados */}
+            <div className="p-3 border-t border-[#2a2a2c] bg-black/10 relative z-20">
+              <button 
+                onClick={() => setStaffModalSucursal(suc)}
+                className="w-full flex items-center justify-between px-3 py-2 bg-[#2a2a2c]/40 hover:bg-[#2a2a2c] rounded-lg transition-colors group/btn"
+              >
+                <div className="flex items-center gap-2">
+                  <Users className="w-4 h-4 text-billanga-gray group-hover/btn:text-white transition-colors" />
+                  <span className="text-sm font-semibold text-billanga-gray group-hover/btn:text-white transition-colors">Personal Asignado</span>
+                </div>
+                <div className="bg-billanga-primary/20 text-billanga-primary text-xs font-bold px-2 py-0.5 rounded-full">
+                  {(suc.empleados || []).length}
+                </div>
+              </button>
             </div>
           </div>
         ))}
@@ -148,6 +237,37 @@ export default function SucursalesPage() {
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
               <button onClick={() => setIsModalOpen(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
               <button onClick={handleSave} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Save className="w-4 h-4" /> {editingSucursal ? "Guardar" : "Crear"}</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Staff */}
+      {staffModalSucursal && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-md rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center">
+              <h3 className="font-bold text-lg text-white flex items-center gap-2">
+                <Users className="w-5 h-5 text-billanga-primary" />
+                Personal en {staffModalSucursal.nombre}
+              </h3>
+              <button onClick={() => setStaffModalSucursal(null)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-0 max-h-[400px] overflow-y-auto">
+              {(!staffModalSucursal.empleados || staffModalSucursal.empleados.length === 0) ? (
+                <div className="p-8 text-center text-billanga-gray">
+                  No hay empleados asignados a esta sucursal.
+                </div>
+              ) : (
+                <ul className="divide-y divide-[#2a2a2c]">
+                  {staffModalSucursal.empleados.map((emp, i) => (
+                    <li key={i} className="p-4 hover:bg-[#2a2a2c]/30 transition-colors flex items-center justify-between">
+                      <span className="font-semibold text-white">{emp.nombre}</span>
+                      <span className="text-[10px] px-2 py-1 bg-zinc-800 rounded-lg text-billanga-gray uppercase font-bold tracking-wider">{emp.rol}</span>
+                    </li>
+                  ))}
+                </ul>
+              )}
             </div>
           </div>
         </div>
