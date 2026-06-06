@@ -38,7 +38,7 @@ export default function RegistroPage() {
     }
 
     const supabase = createClient();
-    const { error: authError } = await supabase.auth.signUp({
+    const { data: authData, error: authError } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -55,9 +55,37 @@ export default function RegistroPage() {
       return;
     }
 
-    setSuccess("¡Cuenta creada exitosamente! Redirigiendo...");
+    if (authData.user) {
+      // 1. Insertar en la tabla pública de clientes
+      const { error: dbError } = await supabase.from('clientes').insert({
+        auth_id: authData.user.id,
+        nombre: nombre,
+        email: email,
+        telefono: telefono || null,
+      });
+
+      if (dbError) {
+        setError("Error al crear el perfil: " + dbError.message);
+        setLoading(false);
+        return;
+      }
+
+      // 2. Auto-login
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+
+      if (signInError) {
+        setError("Cuenta creada, pero hubo un error al iniciar sesión: " + signInError.message);
+        setLoading(false);
+        return;
+      }
+    }
+
+    setSuccess("¡Cuenta creada exitosamente! Iniciando sesión...");
     setTimeout(() => {
-      router.push("/");
+      router.push("/dashboard"); // Redirigir al dashboard u otra página interna
     }, 1500);
   }
 
