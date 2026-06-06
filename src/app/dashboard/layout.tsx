@@ -6,7 +6,7 @@ import { usePathname, useRouter } from "next/navigation";
 import { 
   LogOut, User as UserIcon, Settings, Menu, X, LayoutDashboard,
   Users, CircleDot, ShoppingCart, Wallet, UserCheck, Package, BarChart3,
-  Store, Utensils, Clock, Bell, Trash2, LayoutTemplate, Trophy, Truck
+  Store, Utensils, Clock, Bell, Trash2, LayoutTemplate, Trophy, Truck, UserCircle, ShieldAlert, ArrowLeft, Eye
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import NotificationBell from "@/components/NotificationBell";
