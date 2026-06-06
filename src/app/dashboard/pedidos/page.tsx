@@ -62,14 +62,21 @@ export default function PedidosMonitorPage() {
   };
 
   const updateEstado = async (id_pedido: string, nuevoEstado: string) => {
+    // 1. Actualización optimista (UI instantánea)
+    setPedidos(prev => prev.map(p => p.id_pedido === id_pedido ? { ...p, estado: nuevoEstado } : p));
+
     try {
       const { error } = await supabase
         .from("pedidos")
         .update({ estado: nuevoEstado })
         .eq("id_pedido", id_pedido);
       
-      if (error) throw error;
-      // loadData() se llamará automáticamente por el Realtime Channel
+      if (error) {
+        // 2. Si falla, revertimos recargando los datos reales
+        loadData();
+        throw error;
+      }
+      // Si tiene éxito, loadData() también se llamará por el Realtime Channel en el fondo para asegurar sincronización
     } catch (err: any) {
       alert("Error actualizando estado: " + err.message);
     }
