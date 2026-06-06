@@ -8,6 +8,7 @@ import Image from "next/image";
 import Navbar from "@/components/Navbar";
 import PromoCarousel, { Novedad } from "@/components/PromoCarousel";
 import BottomDock from "@/components/BottomDock";
+import Footer from "@/components/Footer";
 
 interface Categoria {
   id_categoria: string;
@@ -507,6 +508,9 @@ export default function HomePage() {
 
       {/* Barra de navegación inferior móvil */}
       <BottomDock />
+      
+      {/* Footer */}
+      <Footer />
     </div>
   );
 }
