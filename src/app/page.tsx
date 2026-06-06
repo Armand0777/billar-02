@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { Search, ShoppingBag, Plus, Minus, X, Check, Beer } from "lucide-react";
+import { Search, ShoppingBag, Plus, Minus, X, Check, Beer, Clock, ChefHat, CheckCircle, XCircle } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Image from "next/image";
 import Navbar from "@/components/Navbar";
@@ -43,6 +43,7 @@ export default function HomePage() {
   const [tableNumber, setTableNumber] = useState("");
   const [isOrdering, setIsOrdering] = useState(false);
   const [orderSuccess, setOrderSuccess] = useState(false);
+  const [misPedidos, setMisPedidos] = useState<any[]>([]);
 
   const router = useRouter();
   const supabase = createClient();
@@ -58,6 +59,19 @@ export default function HomePage() {
     if (savedTable) {
       setTableNumber(savedTable);
     }
+
+    const channel = supabase
+      .channel('client-pedidos-changes')
+      .on(
+        'postgres_changes',
+        { event: '*', schema: 'public', table: 'pedidos' },
+        () => {
+          loadData();
+        }
+      )
+      .subscribe();
+
+    return () => { supabase.removeChannel(channel); };
   }, []);
 
   // Sincronizar la búsqueda del Navbar con el filtro del catálogo
@@ -105,6 +119,23 @@ export default function HomePage() {
         .eq("activo", true)
         .order("nombre");
       if (prods) setProductos(prods);
+
+      // Cargar mis pedidos de hoy
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        const { data: cliente } = await supabase.from("clientes").select("id_cliente").eq("auth_id", user.id).single();
+        if (cliente) {
+          const hoy = new Date();
+          hoy.setHours(0,0,0,0);
+          const { data: misPed } = await supabase
+            .from("pedidos")
+            .select(`*, pedido_items(cantidad, subtotal, productos(nombre, imagen_url))`)
+            .eq("id_cliente", cliente.id_cliente)
+            .gte("created_at", hoy.toISOString())
+            .order("created_at", { ascending: false });
+          if (misPed) setMisPedidos(misPed);
+        }
+      }
 
     } catch (err) {
       console.error(err);
@@ -307,7 +338,7 @@ export default function HomePage() {
       </div>
 
       {/* Floating Checkout Button (Sticky en la parte inferior) */}
-      {cart.length > 0 && !isCartOpen && (
+      {(cart.length > 0 || misPedidos.length > 0) && !isCartOpen && (
         <div className="fixed bottom-28 md:bottom-6 left-0 w-full px-4 z-40 flex justify-center animate-in slide-in-from-bottom-10 fade-in duration-300">
           <button 
             onClick={() => setIsCartOpen(true)}
@@ -316,17 +347,27 @@ export default function HomePage() {
             <div className="flex items-center gap-3">
               <div className="bg-white/20 p-2 rounded-xl relative">
                 <ShoppingBag className="w-6 h-6" />
-                <span className="absolute -top-2 -right-2 bg-white text-billanga-primary w-5 h-5 rounded-full text-xs font-black flex items-center justify-center shadow-sm">
-                  {cartItemCount}
-                </span>
+                {(cartItemCount > 0 || misPedidos.length > 0) && (
+                  <span className="absolute -top-2 -right-2 bg-white text-billanga-primary w-5 h-5 rounded-full text-xs font-black flex items-center justify-center shadow-sm">
+                    {cart.length > 0 ? cartItemCount : misPedidos.length}
+                  </span>
+                )}
+                {misPedidos.some(p => p.estado === 'pendiente' || p.estado === 'confirmado' || p.estado === 'enviado') && (
+                  <span className="absolute -top-2 -left-2 flex h-4 w-4">
+                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-yellow-400 opacity-75"></span>
+                    <span className="relative inline-flex rounded-full h-4 w-4 bg-yellow-500 border-2 border-billanga-primary"></span>
+                  </span>
+                )}
               </div>
               <span className="font-bold text-left leading-tight">
-                Ver tu<br/>Pedido
+                {cart.length > 0 ? <><span className="text-xs">Ver tu</span><br/>Pedido</> : <><span className="text-xs">Ver tus</span><br/>Pedidos Activos</>}
               </span>
             </div>
-            <span className="font-black text-xl">
-              Bs. {cartTotal.toFixed(2)}
-            </span>
+            {cart.length > 0 && (
+              <span className="font-black text-xl">
+                Bs. {cartTotal.toFixed(2)}
+              </span>
+            )}
           </button>
         </div>
       )}
@@ -348,43 +389,86 @@ export default function HomePage() {
             </div>
 
             {/* Items del carrito */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 scrollbar-hide">
+            <div className="flex-1 overflow-y-auto p-4 space-y-6 scrollbar-hide">
               {orderSuccess ? (
                 <div className="flex flex-col items-center justify-center h-full text-center space-y-4 animate-in fade-in zoom-in">
                   <div className="w-20 h-20 bg-green-500/20 text-green-500 rounded-full flex items-center justify-center">
                     <Check className="w-10 h-10" />
                   </div>
                   <h3 className="text-2xl font-black text-white uppercase italic">¡Pedido Enviado!</h3>
-                  <p className="text-billanga-gray text-sm px-6">Tu pedido ha sido enviado a la barra. En breve te lo llevaremos a la Mesa {tableNumber}.</p>
-                </div>
-              ) : cart.length === 0 ? (
-                <div className="flex flex-col items-center justify-center h-full text-center text-billanga-gray space-y-3">
-                  <ShoppingBag className="w-12 h-12 opacity-20" />
-                  <p>Aún no has agregado nada al pedido.</p>
+                  <p className="text-billanga-gray text-sm px-6">Tu pedido ha sido enviado a la barra. Puedes ver su estado en tus Pedidos Activos.</p>
                 </div>
               ) : (
-                cart.map(item => (
-                  <div key={item.producto.id_producto} className="flex gap-3 bg-[#1a1a1c] border border-[#2a2a2c] p-3 rounded-2xl items-center shadow-sm">
-                    <div className="w-16 h-16 bg-black rounded-xl flex-shrink-0 relative overflow-hidden flex items-center justify-center">
-                      {item.producto.imagen_url ? (
-                        <Image src={item.producto.imagen_url} alt={item.producto.nombre} fill className="object-cover" />
-                      ) : (
-                        <Beer className="w-6 h-6 text-billanga-gray" />
-                      )}
+                <>
+                  {/* Sección Carrito Actual */}
+                  {cart.length > 0 && (
+                    <div className="space-y-4">
+                      <h3 className="text-sm font-bold text-billanga-gray uppercase tracking-wider px-1">En el carrito</h3>
+                      {cart.map(item => (
+                        <div key={item.producto.id_producto} className="flex gap-3 bg-[#1a1a1c] border border-[#2a2a2c] p-3 rounded-2xl items-center shadow-sm">
+                          <div className="w-16 h-16 bg-black rounded-xl flex-shrink-0 relative overflow-hidden flex items-center justify-center">
+                            {item.producto.imagen_url ? (
+                              <Image src={item.producto.imagen_url} alt={item.producto.nombre} fill className="object-cover" />
+                            ) : (
+                              <Beer className="w-6 h-6 text-billanga-gray" />
+                            )}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <h4 className="font-bold text-sm text-white truncate">{item.producto.nombre}</h4>
+                            <p className="font-bold text-billanga-primary text-xs mt-1">Bs. {Number(item.producto.precio_venta).toFixed(2)}</p>
+                          </div>
+                          <div className="flex flex-col items-center justify-between gap-2">
+                            <div className="flex items-center gap-3 bg-black border border-[#2a2a2c] rounded-lg p-1">
+                              <button onClick={() => updateQuantity(item.producto.id_producto, -1)} className="w-6 h-6 flex items-center justify-center text-white bg-[#2a2a2c] rounded-md hover:bg-billanga-primary transition-colors"><Minus className="w-3 h-3" /></button>
+                              <span className="font-bold text-sm w-4 text-center">{item.cantidad}</span>
+                              <button onClick={() => updateQuantity(item.producto.id_producto, 1)} className="w-6 h-6 flex items-center justify-center text-white bg-billanga-primary rounded-md hover:bg-[#b81d24] transition-colors"><Plus className="w-3 h-3" /></button>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <h4 className="font-bold text-sm text-white truncate">{item.producto.nombre}</h4>
-                      <p className="font-bold text-billanga-primary text-xs mt-1">Bs. {Number(item.producto.precio_venta).toFixed(2)}</p>
+                  )}
+
+                  {/* Sección Mis Pedidos Activos */}
+                  {misPedidos.length > 0 && (
+                    <div className="space-y-4 pt-2">
+                      <h3 className="text-sm font-bold text-billanga-gray uppercase tracking-wider px-1">Seguimiento en Vivo</h3>
+                      {misPedidos.map((pedido) => (
+                        <div key={pedido.id_pedido} className="bg-[#1a1a1c] border border-white/10 p-4 rounded-2xl flex flex-col gap-3">
+                          <div className="flex justify-between items-center pb-2 border-b border-white/5">
+                            <span className="text-xs font-bold text-billanga-gray">Pedido a las {new Date(pedido.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${
+                              pedido.estado === 'pendiente' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
+                              pedido.estado === 'confirmado' || pedido.estado === 'enviado' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :
+                              pedido.estado === 'entregado' ? 'bg-emerald-500/10 text-emerald-500 border-emerald-500/20' :
+                              'bg-red-500/10 text-red-500 border-red-500/20'
+                            }`}>
+                              {pedido.estado === 'pendiente' && <Clock className="w-3 h-3" />}
+                              {(pedido.estado === 'confirmado' || pedido.estado === 'enviado') && <ChefHat className="w-3 h-3" />}
+                              {pedido.estado === 'entregado' && <CheckCircle className="w-3 h-3" />}
+                              {pedido.estado === 'cancelado' && <XCircle className="w-3 h-3" />}
+                              
+                              {pedido.estado === 'pendiente' ? 'Esperando al Barman...' :
+                               (pedido.estado === 'confirmado' || pedido.estado === 'enviado') ? 'En Preparación' :
+                               pedido.estado === 'entregado' ? 'Entregado en mesa' : 'Cancelado'}
+                            </span>
+                          </div>
+                          <div className="flex justify-between items-center">
+                            <span className="text-sm font-bold text-white">{pedido.pedido_items.reduce((acc: number, item: any) => acc + item.cantidad, 0)} Productos</span>
+                            <span className="text-sm font-bold text-billanga-primary">Bs. {Number(pedido.total).toFixed(2)}</span>
+                          </div>
+                        </div>
+                      ))}
                     </div>
-                    <div className="flex flex-col items-center justify-between gap-2">
-                      <div className="flex items-center gap-3 bg-black border border-[#2a2a2c] rounded-lg p-1">
-                        <button onClick={() => updateQuantity(item.producto.id_producto, -1)} className="w-6 h-6 flex items-center justify-center text-white bg-[#2a2a2c] rounded-md hover:bg-billanga-primary transition-colors"><Minus className="w-3 h-3" /></button>
-                        <span className="font-bold text-sm w-4 text-center">{item.cantidad}</span>
-                        <button onClick={() => updateQuantity(item.producto.id_producto, 1)} className="w-6 h-6 flex items-center justify-center text-white bg-billanga-primary rounded-md hover:bg-[#b81d24] transition-colors"><Plus className="w-3 h-3" /></button>
-                      </div>
+                  )}
+
+                  {cart.length === 0 && misPedidos.length === 0 && (
+                    <div className="flex flex-col items-center justify-center py-20 text-center text-billanga-gray space-y-3">
+                      <ShoppingBag className="w-12 h-12 opacity-20" />
+                      <p>Aún no has agregado nada al pedido.</p>
                     </div>
-                  </div>
-                ))
+                  )}
+                </>
               )}
             </div>
 

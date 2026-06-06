@@ -78,7 +78,7 @@ export default function PedidosMonitorPage() {
   // Clasificar pedidos por columnas (Kanban)
   const pendientes = pedidos.filter(p => p.estado === 'pendiente');
   const enPreparacion = pedidos.filter(p => p.estado === 'confirmado' || p.estado === 'enviado');
-  const entregados = pedidos.filter(p => p.estado === 'entregado');
+  const historial = pedidos.filter(p => p.estado === 'entregado' || p.estado === 'cancelado');
 
   if (loading) {
     return (
@@ -159,6 +159,12 @@ export default function PedidosMonitorPage() {
               <CheckCircle className="w-4 h-4" /> Pedido Completado
             </div>
           )}
+
+          {p.estado === 'cancelado' && (
+            <div className="col-span-2 py-2 text-center text-red-500 text-xs font-bold flex items-center justify-center gap-1 opacity-80">
+              <XCircle className="w-4 h-4" /> Pedido Cancelado
+            </div>
+          )}
         </div>
       </div>
     </div>
@@ -211,17 +217,17 @@ export default function PedidosMonitorPage() {
           </div>
         </div>
 
-        {/* Columna Entregados */}
+        {/* Columna Historial (Entregados y Cancelados) */}
         <div className="bg-[#121212] border border-[#2a2a2c] rounded-3xl p-4 flex flex-col gap-4 min-h-[60vh] opacity-80">
           <div className="flex items-center justify-between pb-2 border-b border-white/5">
             <h2 className="font-bold text-white flex items-center gap-2">
-              <PackageCheck className="w-4 h-4 text-emerald-500" /> Entregados (Hoy)
+              <PackageCheck className="w-4 h-4 text-emerald-500" /> Historial (Hoy)
             </h2>
-            <span className="bg-emerald-500/20 text-emerald-500 text-xs font-black px-2 py-0.5 rounded-full">{entregados.length}</span>
+            <span className="bg-emerald-500/20 text-emerald-500 text-xs font-black px-2 py-0.5 rounded-full">{historial.length}</span>
           </div>
-          {entregados.length === 0 && <p className="text-center text-sm text-billanga-gray py-10">Aún no se ha entregado nada.</p>}
+          {historial.length === 0 && <p className="text-center text-sm text-billanga-gray py-10">Aún no hay historial.</p>}
           <div className="space-y-4">
-            {entregados.map(p => <PedidoCard key={p.id_pedido} p={p} />)}
+            {historial.map(p => <PedidoCard key={p.id_pedido} p={p} />)}
           </div>
         </div>
 
