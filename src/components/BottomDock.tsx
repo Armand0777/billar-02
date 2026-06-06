@@ -106,7 +106,13 @@ export default function BottomDock() {
 
           {/* Right 1: Carrito */}
           <button 
-            onClick={() => alert("Carrito de compras próximamente disponible en pedidos por QR.")}
+            onClick={() => {
+              if (window.location.pathname === '/') {
+                window.dispatchEvent(new CustomEvent('open-cart'));
+              } else {
+                window.location.href = '/#menu';
+              }
+            }}
             className="flex flex-col items-center gap-1.5 text-billanga-gray hover:text-white active:scale-95 transition-all flex-1"
           >
             <div className="relative">

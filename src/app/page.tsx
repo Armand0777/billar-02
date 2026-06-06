@@ -98,6 +98,12 @@ export default function HomePage() {
     };
   }, []);
 
+  useEffect(() => {
+    const handleOpenCart = () => setIsCartOpen(true);
+    window.addEventListener("open-cart", handleOpenCart);
+    return () => window.removeEventListener("open-cart", handleOpenCart);
+  }, []);
+
   const loadData = async () => {
     setLoading(true);
     try {
