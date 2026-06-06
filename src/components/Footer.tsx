@@ -33,19 +33,16 @@ export default function Footer() {
             <h3 className="text-white font-bold text-lg mb-6">Enlaces Rápidos</h3>
             <ul className="space-y-4 text-sm font-medium">
               <li>
-                <Link href="#" className="hover:text-billanga-primary transition-colors">Inicio</Link>
+                <Link href="/" className="hover:text-billanga-primary transition-colors">Inicio</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-billanga-primary transition-colors">Quiénes Somos</Link>
+                <Link href="/quienes-somos" className="hover:text-billanga-primary transition-colors">Quiénes Somos</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-billanga-primary transition-colors">Catálogo de Bebidas</Link>
+                <Link href="/#menu" className="hover:text-billanga-primary transition-colors">Catálogo de Bebidas</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-billanga-primary transition-colors">Eventos y Torneos</Link>
-              </li>
-              <li>
-                <Link href="/login" className="hover:text-billanga-primary transition-colors">Zona Admin</Link>
+                <Link href="/torneos" className="hover:text-billanga-primary transition-colors">Eventos y Torneos</Link>
               </li>
             </ul>
           </div>
@@ -55,19 +52,16 @@ export default function Footer() {
             <h3 className="text-white font-bold text-lg mb-6">Nuestros Servicios</h3>
             <ul className="space-y-4 text-sm font-medium">
               <li>
-                <span className="hover:text-white cursor-default transition-colors">Alquiler de Mesas VIP</span>
+                <Link href="/quienes-somos" className="hover:text-white transition-colors">Mesas Normales</Link>
               </li>
               <li>
-                <span className="hover:text-white cursor-default transition-colors">Mesas Normales</span>
+                <Link href="/#menu" className="hover:text-white transition-colors">Snacks y Comida Rápida</Link>
               </li>
               <li>
-                <span className="hover:text-white cursor-default transition-colors">Snacks y Comida Rápida</span>
+                <Link href="/#menu" className="hover:text-white transition-colors">Bebidas Nacionales e Importadas</Link>
               </li>
               <li>
-                <span className="hover:text-white cursor-default transition-colors">Bebidas Nacionales e Importadas</span>
-              </li>
-              <li>
-                <span className="hover:text-white cursor-default transition-colors">Reservas para Cumpleaños</span>
+                <a href="https://wa.me/59170000000" target="_blank" rel="noreferrer" className="hover:text-white transition-colors">Reservas para Cumpleaños</a>
               </li>
             </ul>
           </div>
@@ -95,8 +89,8 @@ export default function Footer() {
         <div className="pt-8 border-t border-[#2a2a2c] flex flex-col md:flex-row justify-between items-center gap-4 text-xs font-medium">
           <p>© 2026 Billanga. Todos los derechos reservados.</p>
           <div className="flex gap-6">
-            <Link href="#" className="hover:text-white transition-colors">Términos y Condiciones</Link>
-            <Link href="#" className="hover:text-white transition-colors">Política de Privacidad</Link>
+            <Link href="/terminos" className="hover:text-white transition-colors">Términos y Condiciones</Link>
+            <Link href="/privacidad" className="hover:text-white transition-colors">Política de Privacidad</Link>
           </div>
         </div>
       </div>
