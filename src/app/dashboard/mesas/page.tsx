@@ -588,7 +588,7 @@ export default function MesasPage() {
           <p className="text-sm text-billanga-gray">Abre mesas, elige modalidades y cobra en tiempo real.</p>
         </div>
         <div className="flex items-center gap-3">
-          <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all">
+          <button onClick={() => loadData()} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all">
             <RefreshCw className="w-4 h-4" />
           </button>
           {isAdmin && (
