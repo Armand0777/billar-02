@@ -119,14 +119,14 @@ export function printReceipt(data: ReceiptData) {
           <span>Bs. ${data.totalGeneral.toFixed(2)}</span>
         </div>
         <div class="row text-sm">
-          <span>Metodo Pago:</span>
+          <span>Método de Pago:</span>
           <span style="text-transform: capitalize;">${data.metodoPago}</span>
         </div>
 
         <div class="divider"></div>
         <div class="footer">
-          <p>Gracias por su preferencia!</p>
-          <p>Vuelva pronto</p>
+          <p>¡Gracias por tu preferencia!</p>
+          <p>¡Te esperamos pronto!</p>
         </div>
       </div>
       <script>
