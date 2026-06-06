@@ -296,6 +296,25 @@ export default function MesasPage() {
     }
   };
 
+  const handleAddTime = async (minutesToAdd: number) => {
+    if (!posSesion || posSesion.modalidad !== 'fijo') return;
+    
+    const currentMinutes = posSesion.tiempo_fijo_minutos || 60;
+    const newMinutes = currentMinutes + minutesToAdd;
+    
+    const { error } = await supabase
+      .from("sesiones_mesa")
+      .update({ tiempo_fijo_minutos: newMinutes })
+      .eq("id_sesion", posSesion.id_sesion);
+      
+    if (!error) {
+      setPosSesion({ ...posSesion, tiempo_fijo_minutos: newMinutes });
+      loadSesionesActivas();
+    } else {
+      alert("Error al agregar tiempo: " + error.message);
+    }
+  };
+
   const handleAddProduct = async (prod: Producto) => {
     if (!posMesa || !posSesion || !currentUser || !activeSucursalId) return;
 
@@ -810,19 +829,30 @@ export default function MesasPage() {
               <div className="flex-1 overflow-y-auto p-4 space-y-3 scrollbar-thin scrollbar-thumb-[#2a2a2c]">
                 
                 {/* Item fijo de Tiempo de Juego */}
-                <div className="bg-[#2a2a2c]/30 border border-billanga-primary/30 p-3 rounded-xl flex items-center justify-between">
-                  <div className="flex items-center gap-3">
-                    <div className="bg-billanga-primary/20 p-2 rounded-lg">
-                      {posSesion.modalidad === 'partida' ? <Check className="w-5 h-5 text-billanga-primary" /> : <Timer className="w-5 h-5 text-billanga-primary animate-pulse" />}
+                <div className="bg-[#2a2a2c]/30 border border-billanga-primary/30 p-3 rounded-xl flex flex-col gap-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="bg-billanga-primary/20 p-2 rounded-lg">
+                        {posSesion.modalidad === 'partida' ? <Check className="w-5 h-5 text-billanga-primary" /> : <Timer className="w-5 h-5 text-billanga-primary animate-pulse" />}
+                      </div>
+                      <div>
+                        <h4 className="font-bold text-white text-sm">{posSesion.modalidad === 'partida' ? 'Cargo Fijo por Ficha' : 'Tiempo de Juego'}</h4>
+                        <p className="text-xs text-billanga-gray font-mono">{getSessionDetails(posSesion).timeString} ({getSessionDetails(posSesion).tarifaNombre})</p>
+                      </div>
                     </div>
-                    <div>
-                      <h4 className="font-bold text-white text-sm">{posSesion.modalidad === 'partida' ? 'Cargo Fijo por Ficha' : 'Tiempo de Juego'}</h4>
-                      <p className="text-xs text-billanga-gray font-mono">{getSessionDetails(posSesion).timeString} ({getSessionDetails(posSesion).tarifaNombre})</p>
+                    <div className="text-right font-black text-white">
+                      Bs. {getSessionDetails(posSesion).accumulatedValue}
                     </div>
                   </div>
-                  <div className="text-right font-black text-white">
-                    Bs. {getSessionDetails(posSesion).accumulatedValue}
-                  </div>
+                  
+                  {/* Extensiones de Tiempo (Solo FIJO) */}
+                  {posSesion.modalidad === 'fijo' && (
+                    <div className="flex gap-2 mt-2 pt-2 border-t border-[#2a2a2c]/50">
+                      <button onClick={() => handleAddTime(15)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 15 min</button>
+                      <button onClick={() => handleAddTime(30)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 30 min</button>
+                      <button onClick={() => handleAddTime(60)} className="flex-1 bg-[#1a1a1c] hover:bg-[#2a2a2c] border border-[#2a2a2c] hover:border-billanga-primary/50 text-white text-xs font-bold py-1.5 rounded-lg transition-colors flex items-center justify-center gap-1"><Plus className="w-3 h-3"/> 1 hora</button>
+                    </div>
+                  )}
                 </div>
 
                 {/* Items de Productos */}
