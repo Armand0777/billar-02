@@ -7,6 +7,8 @@ export interface ReceiptData {
     horas: string;
     costo: number;
     tarifaNombre?: string;
+    horaInicio?: string;
+    precioPorHora?: number;
   };
   productos: {
     nombre: string;
@@ -26,12 +28,35 @@ export function printReceipt(data: ReceiptData) {
   if (data.tipo === "mesa" && data.tiempo) {
     timeSection = `
       <div class="divider"></div>
-      <div class="row">
-        <span>Tiempo (${data.tiempo.tarifaNombre || "Normal"})</span>
+      <div style="text-align:center; font-weight:bold; margin: 10px 0 5px 0;">
+        DETALLE DE CONSUMO
       </div>
+      ${data.tiempo.horaInicio ? `
       <div class="row text-sm">
+        <span>Hora inicio juego</span>
+        <span>${data.tiempo.horaInicio}</span>
+      </div>
+      ` : ''}
+      ${data.tiempo.precioPorHora ? `
+      <div class="row text-sm">
+        <span>Precio por hora</span>
+        <span>${data.tiempo.precioPorHora.toFixed(2)} Bs.</span>
+      </div>
+      ` : ''}
+      <div class="row text-sm">
+        <span>Tiempo de juego</span>
         <span>${data.tiempo.horas} hrs</span>
-        <span>Bs. ${data.tiempo.costo.toFixed(2)}</span>
+      </div>
+      <div class="row text-sm" style="margin-bottom: 5px;">
+        <span>Costo del tiempo</span>
+        <span>${data.tiempo.costo.toFixed(2)} Bs.</span>
+      </div>
+    `;
+  } else if (data.productos.length > 0) {
+    timeSection = `
+      <div class="divider"></div>
+      <div style="text-align:center; font-weight:bold; margin: 10px 0 5px 0;">
+        DETALLE DE CONSUMO
       </div>
     `;
   }
@@ -39,10 +64,12 @@ export function printReceipt(data: ReceiptData) {
   let productsSection = "";
   if (data.productos.length > 0) {
     productsSection = `
+      ${data.tipo !== "mesa" ? `
       <div class="divider"></div>
-      <div class="row">
-        <strong>Productos</strong>
-      </div>
+      <div style="text-align:center; font-weight:bold; margin: 10px 0 5px 0;">
+        DETALLE DE CONSUMO
+      </div>` : ''}
+
       ${data.productos.map(p => `
         <div class="row text-sm">
           <span>${p.cantidad}x ${p.nombre}</span>

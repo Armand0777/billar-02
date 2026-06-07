@@ -477,7 +477,9 @@ export default function MesasPage() {
       diffSecs,
       isPartida,
       isFijo,
-      isTimeUp
+      isTimeUp,
+      precioHora,
+      horaInicio: inicio.toLocaleString("es-BO", { hour12: false })
     };
   };
 
@@ -523,7 +525,9 @@ export default function MesasPage() {
         tiempo: {
           horas: sessionDetails.timeString,
           costo: totalTiempo,
-          tarifaNombre: sessionDetails.tarifaNombre
+          tarifaNombre: sessionDetails.tarifaNombre,
+          horaInicio: sessionDetails.horaInicio,
+          precioPorHora: sessionDetails.precioHora
         },
         productos: (posVenta?.items || []).map(i => ({
           nombre: i.producto?.nombre || "Producto",
