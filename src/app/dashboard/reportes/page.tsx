@@ -37,7 +37,7 @@ export default function ReportesPage() {
         .from("ventas")
         .select(`
           id_venta, total, metodo_pago, estado, created_at,
-          venta_items(cantidad, subtotal, productos:id_producto(nombre, id_categoria))
+          venta_items(cantidad, subtotal, productos:id_producto(nombre, id_categoria, precio_costo))
         `)
         .eq("estado", "completada")
         .gte("created_at", fechaInicio.toISOString());
@@ -54,7 +54,30 @@ export default function ReportesPage() {
   };
 
   // --- Kpis ---
-  const totalIngresos = ventas.reduce((s, v) => s + Number(v.total), 0);
+  let totalIngresos = 0;
+  let ingresosProductos = 0;
+  let costoProductos = 0;
+
+  ventas.forEach(v => {
+    totalIngresos += Number(v.total);
+    let subProductosVenta = 0;
+
+    (v.venta_items || []).forEach((item: any) => {
+      subProductosVenta += Number(item.subtotal);
+      
+      const prod = Array.isArray(item.productos) ? item.productos[0] : item.productos;
+      if (prod) {
+        const pCosto = Number(prod.precio_costo || 0);
+        costoProductos += (pCosto * Number(item.cantidad));
+      }
+    });
+
+    ingresosProductos += subProductosVenta;
+  });
+
+  const ingresosMesas = Math.max(0, totalIngresos - ingresosProductos);
+  const gananciaProductos = Math.max(0, ingresosProductos - costoProductos);
+  
   const totalVentas = ventas.length;
   const ticketPromedio = totalVentas > 0 ? totalIngresos / totalVentas : 0;
   
@@ -64,20 +87,25 @@ export default function ReportesPage() {
     return acc;
   }, {} as Record<string, number>);
 
-  // Productos mas vendidos
-  const productosMap = new Map<string, { nombre: string, cantidad: number, subtotal: number }>();
+  // Productos mas vendidos (rentabilidad)
+  const productosMap = new Map<string, { nombre: string, cantidad: number, ingresos: number, costo: number, ganancia: number }>();
   ventas.forEach(v => {
     (v.venta_items || []).forEach((item: any) => {
       const prod = Array.isArray(item.productos) ? item.productos[0] : item.productos;
       if (!prod) return;
       const key = prod.nombre;
-      const current = productosMap.get(key) || { nombre: key, cantidad: 0, subtotal: 0 };
+      const current = productosMap.get(key) || { nombre: key, cantidad: 0, ingresos: 0, costo: 0, ganancia: 0 };
+      
       current.cantidad += Number(item.cantidad);
-      current.subtotal += Number(item.subtotal);
+      current.ingresos += Number(item.subtotal);
+      const itemCosto = Number(prod.precio_costo || 0) * Number(item.cantidad);
+      current.costo += itemCosto;
+      current.ganancia = current.ingresos - current.costo;
+      
       productosMap.set(key, current);
     });
   });
-  const topProductos = Array.from(productosMap.values()).sort((a, b) => b.cantidad - a.cantidad).slice(0, 5);
+  const topProductos = Array.from(productosMap.values()).sort((a, b) => b.ganancia - a.ganancia).slice(0, 5);
 
   if (loading) {
     return (<div className="flex flex-col items-center justify-center py-24 text-billanga-gray"><RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" /><p className="text-sm">Generando reportes...</p></div>);
@@ -103,35 +131,36 @@ export default function ReportesPage() {
       {/* KPIs Principales */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-3 bg-green-500/10 rounded-xl"><TrendingUp className="w-6 h-6 text-green-500" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Ingresos Totales</p><p className="text-2xl font-black text-white mt-1">Bs. {totalIngresos.toFixed(2)}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-3 bg-green-500/10 rounded-xl"><TrendingUp className="w-6 h-6 text-green-500" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Ingresos Globales</p><p className="text-2xl font-black text-white mt-1">Bs. {totalIngresos.toFixed(2)}</p></div></div>
+        </div>
+        <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-2 opacity-10"><BarChart3 className="w-16 h-16 text-billanga-primary" /></div>
+          <div className="flex items-center gap-3 relative z-10"><div className="p-3 bg-billanga-primary/10 rounded-xl"><Calendar className="w-6 h-6 text-billanga-primary" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Ingresos Mesas</p><p className="text-2xl font-black text-white mt-1">Bs. {ingresosMesas.toFixed(2)}</p></div></div>
         </div>
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-3 bg-blue-500/10 rounded-xl"><ShoppingBag className="w-6 h-6 text-blue-400" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Total Ventas</p><p className="text-2xl font-black text-white mt-1">{totalVentas}</p></div></div>
+          <div className="flex items-center gap-3"><div className="p-3 bg-blue-500/10 rounded-xl"><ShoppingBag className="w-6 h-6 text-blue-400" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Venta Productos</p><p className="text-2xl font-black text-white mt-1">Bs. {ingresosProductos.toFixed(2)}</p></div></div>
         </div>
-        <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5">
-          <div className="flex items-center gap-3"><div className="p-3 bg-purple-500/10 rounded-xl"><Banknote className="w-6 h-6 text-purple-400" /></div><div><p className="text-xs text-billanga-gray uppercase tracking-wider">Ticket Promedio</p><p className="text-2xl font-black text-white mt-1">Bs. {ticketPromedio.toFixed(2)}</p></div></div>
-        </div>
-        <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-5 flex flex-col justify-center gap-2">
-           <button className="flex items-center justify-center gap-2 w-full py-2 bg-billanga-primary/10 text-billanga-primary border border-billanga-primary/20 hover:bg-billanga-primary hover:text-white rounded-lg text-sm font-bold transition-all">
-             <Download className="w-4 h-4" /> Exportar CSV
-           </button>
+        <div className="bg-[#1a1a1c] border border-green-500/30 shadow-[0_0_15px_rgba(34,197,94,0.1)] rounded-xl p-5">
+           <div className="flex items-center gap-3"><div className="p-3 bg-green-500/20 rounded-xl"><Banknote className="w-6 h-6 text-green-400" /></div><div><p className="text-xs text-green-400 font-bold uppercase tracking-wider">Ganancia Neta (Prod)</p><p className="text-2xl font-black text-white mt-1">Bs. {gananciaProductos.toFixed(2)}</p></div></div>
         </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Productos Top */}
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-6">
-          <h3 className="font-bold text-white text-base mb-4">Productos Más Vendidos</h3>
+          <h3 className="font-bold text-white text-base mb-4">Top Rentabilidad de Productos</h3>
           <div className="space-y-4">
             {topProductos.length > 0 ? topProductos.map((p, i) => (
               <div key={i} className="flex justify-between items-center bg-black/20 p-3 rounded-lg border border-[#2a2a2c]/50">
                 <div className="flex items-center gap-3">
                   <div className="w-6 h-6 rounded bg-[#2a2a2c] text-xs font-bold flex items-center justify-center text-billanga-gray">{i + 1}</div>
-                  <span className="text-sm font-bold text-white">{p.nombre}</span>
+                  <div>
+                    <span className="text-sm font-bold text-white block">{p.nombre}</span>
+                    <span className="text-xs text-billanga-gray">{p.cantidad} unidades vendidas</span>
+                  </div>
                 </div>
                 <div className="text-right">
-                  <div className="text-sm font-bold text-billanga-primary">{p.cantidad} und.</div>
-                  <div className="text-xs text-billanga-gray">Bs. {p.subtotal.toFixed(2)}</div>
+                  <div className="text-sm font-bold text-green-400">+Bs. {p.ganancia.toFixed(2)} <span className="text-[10px] text-billanga-gray font-normal block">Ganancia Neta</span></div>
                 </div>
               </div>
             )) : (
