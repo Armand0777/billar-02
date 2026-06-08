@@ -14,8 +14,10 @@ export default function ClientesPage() {
   const [searchTerm, setSearchTerm] = useState("");
 
   const [isEditing, setIsEditing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [currentCliente, setCurrentCliente] = useState<any>(null);
   const [editPuntos, setEditPuntos] = useState("");
+  const [newCliente, setNewCliente] = useState({ nombre: "", email: "", telefono: "" });
 
   const supabase = createClient();
 
@@ -61,6 +63,34 @@ export default function ClientesPage() {
     }
   };
 
+  const handleCreateCliente = async () => {
+    if (!newCliente.nombre) {
+      alert("El nombre es obligatorio");
+      return;
+    }
+    try {
+      const { data, error } = await supabase
+        .from("clientes")
+        .insert({
+          nombre: newCliente.nombre,
+          email: newCliente.email || null,
+          telefono: newCliente.telefono || null,
+          activo: true,
+          puntos_fidelidad: 0
+        })
+        .select();
+
+      if (error) throw error;
+      if (!data || data.length === 0) throw new Error("No se pudo crear el cliente por permisos o conflicto.");
+
+      setIsCreating(false);
+      setNewCliente({ nombre: "", email: "", telefono: "" });
+      loadClientes();
+    } catch (err: any) {
+      alert("Error al crear cliente: " + err.message);
+    }
+  };
+
   const filteredClientes = clientes.filter(c => 
     c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
     (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
@@ -91,6 +121,9 @@ export default function ClientesPage() {
           </div>
           <button onClick={loadClientes} className="p-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-xl transition-all">
             <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
+          </button>
+          <button onClick={() => setIsCreating(true)} className="px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-xl text-sm font-bold transition-all whitespace-nowrap">
+            Nuevo Cliente
           </button>
         </div>
       </div>
@@ -207,6 +240,54 @@ export default function ClientesPage() {
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
               <button onClick={() => setIsEditing(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
               <button onClick={handleUpdatePuntos} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm">Guardar</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal Nuevo Cliente */}
+      {isCreating && (
+        <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-sm rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center">
+              <h3 className="font-bold text-lg text-white">Nuevo Cliente</h3>
+              <button onClick={() => setIsCreating(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
+            </div>
+            <div className="p-6 space-y-4">
+              <div>
+                <label className="text-sm font-medium text-billanga-gray block mb-1">Nombre Completo *</label>
+                <input 
+                  type="text" 
+                  value={newCliente.nombre}
+                  onChange={(e) => setNewCliente({...newCliente, nombre: e.target.value})}
+                  placeholder="Ej: Juan Pérez"
+                  className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-billanga-gray block mb-1">Email (Opcional)</label>
+                <input 
+                  type="email" 
+                  value={newCliente.email}
+                  onChange={(e) => setNewCliente({...newCliente, email: e.target.value})}
+                  placeholder="juan@ejemplo.com"
+                  className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary"
+                />
+              </div>
+              <div>
+                <label className="text-sm font-medium text-billanga-gray block mb-1">Teléfono (Opcional)</label>
+                <input 
+                  type="text" 
+                  value={newCliente.telefono}
+                  onChange={(e) => setNewCliente({...newCliente, telefono: e.target.value})}
+                  placeholder="+58 412 1234567"
+                  className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary"
+                />
+              </div>
+            </div>
+            <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
+              <button onClick={() => setIsCreating(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
+              <button onClick={handleCreateCliente} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm">Crear</button>
             </div>
           </div>
         </div>

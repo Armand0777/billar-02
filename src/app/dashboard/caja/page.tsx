@@ -1,11 +1,12 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import {
   Landmark, DollarSign, ArrowUpRight, ArrowDownRight, Lock, Unlock,
-  RefreshCw, Plus, AlertTriangle, X, Check, Clock
+  RefreshCw, Plus, AlertTriangle, X, Check, Clock, Printer
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import TicketCierre, { TicketCierreData } from "@/components/TicketCierre";
 
 export default function CajaPage() {
   const [loading, setLoading] = useState(true);
@@ -13,15 +14,21 @@ export default function CajaPage() {
   const [currentUser, setCurrentUser] = useState<any>(null);
   const [activeSucursalId, setActiveSucursalId] = useState("");
   const [cajaId, setCajaId] = useState("");
+  const [sucursalNombre, setSucursalNombre] = useState("");
 
   // Estado de caja
   const [cajaAbierta, setCajaAbierta] = useState(false);
   const [arqueoActual, setArqueoActual] = useState<any>(null);
   const [movimientos, setMovimientos] = useState<any[]>([]);
-  const [totalIngresos, setTotalIngresos] = useState(0);
+  const [ventasTurno, setVentasTurno] = useState<any[]>([]);
+  
+  // Totales Calculados
+  const [totalIngresos, setTotalIngresos] = useState(0); // manual + ventas
   const [totalEfectivo, setTotalEfectivo] = useState(0);
   const [totalQr, setTotalQr] = useState(0);
   const [totalEgresos, setTotalEgresos] = useState(0);
+  const [totalVentasMesas, setTotalVentasMesas] = useState(0);
+  const [totalVentasProductos, setTotalVentasProductos] = useState(0);
 
   // Modales
   const [isOpeningCaja, setIsOpeningCaja] = useState(false);
@@ -33,6 +40,10 @@ export default function CajaPage() {
   const [movTipo, setMovTipo] = useState<'ingreso' | 'egreso'>('ingreso');
   const [movMonto, setMovMonto] = useState("");
   const [movDescripcion, setMovDescripcion] = useState("");
+
+  // Ticket
+  const [ticketData, setTicketData] = useState<TicketCierreData | null>(null);
+  const ticketRef = useRef<HTMLDivElement>(null);
 
   const supabase = createClient();
 
@@ -48,9 +59,11 @@ export default function CajaPage() {
         setCurrentUser(dbUser || { id_usuario: user.id, nombre: user.email?.split("@")[0] || "Admin" });
       }
 
-      const { data: sucursales } = await supabase.from("sucursales").select("id_sucursal");
-      const sucursalId = sucursales?.[0]?.id_sucursal || "";
+      const { data: sucursales } = await supabase.from("sucursales").select("id_sucursal, nombre");
+      const sucursal = sucursales?.[0];
+      const sucursalId = sucursal?.id_sucursal || "";
       setActiveSucursalId(sucursalId);
+      setSucursalNombre(sucursal?.nombre || "El Billanga");
 
       // Obtener o crear caja
       let { data: cajas } = await supabase.from("cajas").select("*").eq("id_sucursal", sucursalId).eq("activo", true);
@@ -62,6 +75,8 @@ export default function CajaPage() {
       if (caja) setCajaId(caja.id_caja);
 
       if (caja) {
+        const hoy = new Date().toISOString().slice(0, 10);
+        
         // Verificar si hay un arqueo de apertura sin cierre correspondiente
         const { data: lastArqueo } = await supabase
           .from("arqueos")
@@ -71,6 +86,9 @@ export default function CajaPage() {
           .order("created_at", { ascending: false })
           .limit(1)
           .maybeSingle();
+
+        let aperturaTime = hoy + "T00:00:00";
+        let isAbierta = false;
 
         if (lastArqueo) {
           // Buscar si hay un cierre posterior
@@ -86,34 +104,92 @@ export default function CajaPage() {
           if (!cierrePost) {
             setCajaAbierta(true);
             setArqueoActual(lastArqueo);
+            aperturaTime = lastArqueo.created_at;
+            isAbierta = true;
           } else {
             setCajaAbierta(false);
             setArqueoActual(null);
           }
+        } else {
+          setCajaAbierta(false);
+          setArqueoActual(null);
         }
 
-        // Movimientos del día
-        const hoy = new Date().toISOString().slice(0, 10);
-        const { data: movsData } = await supabase
-          .from("movimientos_caja")
-          .select("*")
-          .eq("id_caja", caja.id_caja)
-          .gte("created_at", hoy + "T00:00:00")
-          .order("created_at", { ascending: false });
+        // Si la caja está abierta, buscar movimientos y ventas desde la apertura
+        if (isAbierta) {
+          const { data: movsData } = await supabase
+            .from("movimientos_caja")
+            .select("*")
+            .eq("id_caja", caja.id_caja)
+            .gte("created_at", aperturaTime)
+            .order("created_at", { ascending: false });
 
-        const movs = movsData || [];
-        setMovimientos(movs);
-        const ingresos = movs.filter((m: any) => m.tipo === 'ingreso' || m.tipo === 'apertura');
-        setTotalIngresos(ingresos.reduce((s: number, m: any) => s + Number(m.monto), 0));
-        
-        // Desglose de ingresos
-        const efectivo = ingresos.filter((m: any) => !m.descripcion?.includes('(QR)')).reduce((s: number, m: any) => s + Number(m.monto), 0);
-        const qr = ingresos.filter((m: any) => m.descripcion?.includes('(QR)')).reduce((s: number, m: any) => s + Number(m.monto), 0);
-        
-        setTotalEfectivo(efectivo);
-        setTotalQr(qr);
+          const movs = movsData || [];
+          setMovimientos(movs);
+          
+          const { data: ventasData } = await supabase
+            .from("ventas")
+            .select(`
+              *,
+              venta_items ( cantidad, subtotal, productos (nombre) ),
+              sesiones_mesa ( total_tiempo, mesas (tipo) )
+            `)
+            .eq("id_sucursal", sucursalId)
+            .eq("estado", "completada")
+            .gte("created_at", aperturaTime);
+            
+          const ventas = ventasData || [];
+          setVentasTurno(ventas);
 
-        setTotalEgresos(movs.filter((m: any) => m.tipo === 'egreso').reduce((s: number, m: any) => s + Number(m.monto), 0));
+          // Sumatorias Manuales (Movimientos)
+          const ingresosManuales = movs.filter((m: any) => m.tipo === 'ingreso');
+          const egresosManuales = movs.filter((m: any) => m.tipo === 'egreso');
+          
+          const tIngresosManuales = ingresosManuales.reduce((s: number, m: any) => s + Number(m.monto), 0);
+          const tEgresos = egresosManuales.reduce((s: number, m: any) => s + Number(m.monto), 0);
+          
+          // Sumatorias Ventas
+          let tVentas = 0;
+          let vEfectivo = 0;
+          let vQr = 0;
+          let tVentasProductos = 0;
+          let tVentasMesas = 0;
+
+          ventas.forEach(v => {
+            const t = Number(v.total);
+            tVentas += t;
+            
+            // Efectivo vs QR
+            if (v.metodo_pago === 'efectivo' || v.metodo_pago === 'mixto') vEfectivo += t; // Simplificación
+            else vQr += t;
+            
+            // Prod vs Mesa
+            let subtotalProd = 0;
+            if (v.venta_items) {
+              v.venta_items.forEach((item: any) => {
+                subtotalProd += Number(item.subtotal);
+              });
+            }
+            tVentasProductos += subtotalProd;
+            tVentasMesas += (t - subtotalProd); // El restante es la mesa
+          });
+
+          // Efectivo y QR de ingresos manuales
+          const efManual = ingresosManuales.filter((m: any) => !m.descripcion?.toUpperCase().includes('QR')).reduce((s: number, m: any) => s + Number(m.monto), 0);
+          const qrManual = ingresosManuales.filter((m: any) => m.descripcion?.toUpperCase().includes('QR')).reduce((s: number, m: any) => s + Number(m.monto), 0);
+          
+          setTotalIngresos(tVentas + tIngresosManuales);
+          setTotalEfectivo(vEfectivo + efManual);
+          setTotalQr(vQr + qrManual);
+          setTotalEgresos(tEgresos);
+          setTotalVentasProductos(tVentasProductos);
+          setTotalVentasMesas(tVentasMesas);
+        } else {
+          setMovimientos([]);
+          setVentasTurno([]);
+          setTotalIngresos(0); setTotalEfectivo(0); setTotalQr(0); setTotalEgresos(0);
+          setTotalVentasProductos(0); setTotalVentasMesas(0);
+        }
       }
     } catch (err: any) {
       console.error(err);
@@ -140,23 +216,104 @@ export default function CajaPage() {
     } catch (err: any) { alert("Error: " + err.message); }
   };
 
+  const saldoActual = Number(arqueoActual?.monto_inicial || 0) + totalIngresos - totalEgresos;
+
   const handleCerrarCaja = async () => {
     if (!montoFinal || !cajaId || !currentUser || !activeSucursalId) return;
     try {
-      await supabase.from("arqueos").insert({
+      const cierreData = {
         id_caja: cajaId, id_sucursal: activeSucursalId, id_usuario: currentUser.id_usuario,
         tipo: "cierre", monto_inicial: Number(arqueoActual?.monto_inicial || 0), monto_final: Number(montoFinal),
         observacion: observacionCierre || "Cierre de caja"
-      });
+      };
+
+      await supabase.from("arqueos").insert(cierreData);
       await supabase.from("movimientos_caja").insert({
         id_caja: cajaId, id_sucursal: activeSucursalId, id_usuario: currentUser.id_usuario,
         tipo: "cierre", monto: Number(montoFinal), descripcion: "Cierre de caja"
       });
+
+      // Generar Reporte Z
+      generarTicketZ(cierreData);
+
       setIsClosingCaja(false);
       setMontoFinal("");
       setObservacionCierre("");
       loadData();
-    } catch (err: any) { alert("Error: " + err.message); }
+    } catch (err: any) { alert("Error al cerrar caja: " + err.message); }
+  };
+
+  const generarTicketZ = (cierreData: any) => {
+    // Agrupar productos
+    const productMap = new Map<string, { cant: number, sub: number }>();
+    ventasTurno.forEach(v => {
+      if (v.venta_items) {
+        v.venta_items.forEach((item: any) => {
+          const name = item.productos?.nombre || "Producto";
+          const curr = productMap.get(name) || { cant: 0, sub: 0 };
+          productMap.set(name, {
+            cant: curr.cant + Number(item.cantidad),
+            sub: curr.sub + Number(item.subtotal)
+          });
+        });
+      }
+    });
+
+    const desgloseProductos = Array.from(productMap.entries()).map(([nombre, vals]) => ({
+      nombre,
+      cantidad: vals.cant,
+      subtotal: vals.sub
+    }));
+
+    // Agrupar Mesas
+    const mesasMap = new Map<string, { tiempo: number, sub: number }>();
+    ventasTurno.forEach(v => {
+      const subProd = v.venta_items ? v.venta_items.reduce((s: number, i: any) => s + Number(i.subtotal), 0) : 0;
+      const subMesa = Number(v.total) - subProd;
+      
+      if (subMesa > 0 && v.sesiones_mesa) {
+        // En ventas, puede venir como array o como obj. Verificamos:
+        const sesion = Array.isArray(v.sesiones_mesa) ? v.sesiones_mesa[0] : v.sesiones_mesa;
+        if (sesion) {
+          const tipo = sesion.mesas?.tipo || "billar";
+          const t = Number(sesion.total_tiempo || 0);
+          const curr = mesasMap.get(tipo) || { tiempo: 0, sub: 0 };
+          mesasMap.set(tipo, { tiempo: curr.tiempo + t, sub: curr.sub + subMesa });
+        }
+      }
+    });
+
+    const desgloseMesas = Array.from(mesasMap.entries()).map(([tipo, vals]) => ({
+      tipo,
+      tiempoTotal: vals.tiempo.toFixed(1) + "h",
+      subtotal: vals.sub
+    }));
+
+    const ingresosAdicionales = movimientos.filter((m: any) => m.tipo === 'ingreso').reduce((s: number, m: any) => s + Number(m.monto), 0);
+
+    const data: TicketCierreData = {
+      sucursalNombre: sucursalNombre,
+      cajeroNombre: currentUser?.nombre || "Cajero",
+      fechaApertura: arqueoActual?.created_at || new Date().toISOString(),
+      fechaCierre: new Date().toISOString(),
+      montoInicial: Number(arqueoActual?.monto_inicial || 0),
+      totalVentasProductos: totalVentasProductos,
+      totalVentasMesas: totalVentasMesas,
+      totalIngresosAdicionales: ingresosAdicionales,
+      totalEgresos: totalEgresos,
+      saldoEstimado: saldoActual,
+      montoCierreReal: cierreData.monto_final,
+      diferencia: cierreData.monto_final - saldoActual,
+      observacion: cierreData.observacion,
+      desgloseProductos,
+      desgloseMesas,
+      metodosPago: {
+        efectivo: totalEfectivo,
+        qr: totalQr
+      }
+    };
+
+    setTicketData(data);
   };
 
   const handleAddMovimiento = async () => {
@@ -173,15 +330,33 @@ export default function CajaPage() {
     } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  const saldoActual = Number(arqueoActual?.monto_inicial || 0) + totalIngresos - totalEgresos;
-
   if (loading) {
     return (<div className="flex flex-col items-center justify-center py-24 text-billanga-gray"><RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" /><p className="text-sm">Cargando control de caja...</p></div>);
   }
 
   return (
-    <div className="space-y-6 animate-in fade-in duration-500">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-in fade-in duration-500 relative">
+      
+      {/* Modal de Ticket Z (sobre todo) */}
+      {ticketData && (
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-4 print:bg-white print:p-0">
+          <button 
+            onClick={() => setTicketData(null)}
+            className="absolute top-6 right-6 p-2 bg-[#2a2a2c] hover:bg-red-500/20 text-white hover:text-red-400 rounded-full transition-all print:hidden"
+          >
+            <X className="w-6 h-6" />
+          </button>
+          
+          <div className="text-center mb-6 print:hidden">
+            <h2 className="text-2xl font-bold text-white mb-2">Turno Cerrado Exitosamente</h2>
+            <p className="text-billanga-gray">Aquí tienes el ticket de cierre Z. Puedes imprimirlo ahora.</p>
+          </div>
+
+          <TicketCierre data={ticketData} ref={ticketRef} />
+        </div>
+      )}
+
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 print:hidden">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2"><Landmark className="w-7 h-7 text-billanga-primary" /> Control de Caja</h2>
           <p className="text-sm text-billanga-gray">Apertura, cierre y movimientos de caja diarios.</p>
@@ -189,10 +364,10 @@ export default function CajaPage() {
         <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
       </div>
 
-      {dbError && (<div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl flex items-start gap-3"><AlertTriangle className="w-6 h-6 shrink-0" /><div><h4 className="font-bold text-white">Error</h4><p className="text-sm">{dbError}</p></div></div>)}
+      {dbError && (<div className="bg-red-500/10 border border-red-500/30 text-red-400 p-4 rounded-xl flex items-start gap-3 print:hidden"><AlertTriangle className="w-6 h-6 shrink-0" /><div><h4 className="font-bold text-white">Error</h4><p className="text-sm">{dbError}</p></div></div>)}
 
       {/* Estado de Caja */}
-      <div className={`border rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 ${cajaAbierta ? "bg-green-500/5 border-green-500/30" : "bg-[#1a1a1c] border-[#2a2a2c]"}`}>
+      <div className={`border rounded-2xl p-6 flex flex-col md:flex-row md:items-center justify-between gap-6 print:hidden ${cajaAbierta ? "bg-green-500/5 border-green-500/30" : "bg-[#1a1a1c] border-[#2a2a2c]"}`}>
         <div className="flex items-center gap-4">
           <div className={`p-4 rounded-2xl ${cajaAbierta ? "bg-green-500/10" : "bg-[#2a2a2c]"}`}>
             {cajaAbierta ? <Unlock className="w-8 h-8 text-green-500" /> : <Lock className="w-8 h-8 text-billanga-gray" />}
@@ -217,7 +392,7 @@ export default function CajaPage() {
 
       {/* Resumen Rápido */}
       {cajaAbierta && (
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 print:hidden">
           {/* Tarjeta de Ingresos con Desglose */}
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl p-6 flex items-start gap-4 transition-all hover:border-[#3a3a3c]">
             <div className="p-3 bg-green-500/10 rounded-xl mt-1">
@@ -249,8 +424,8 @@ export default function CajaPage() {
       )}
 
       {/* Movimientos del Día */}
-      <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl overflow-hidden">
-        <div className="p-5 border-b border-[#2a2a2c]"><h3 className="font-bold text-white flex items-center gap-2"><Clock className="w-5 h-5 text-billanga-primary" /> Movimientos del Día</h3></div>
+      <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl overflow-hidden print:hidden">
+        <div className="p-5 border-b border-[#2a2a2c]"><h3 className="font-bold text-white flex items-center gap-2"><Clock className="w-5 h-5 text-billanga-primary" /> Movimientos del Turno</h3></div>
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead><tr className="border-b border-[#2a2a2c] text-xs font-bold text-billanga-gray tracking-wider uppercase bg-[#141416]/50">
@@ -268,7 +443,7 @@ export default function CajaPage() {
                   </tr>
                 );
               }) : (
-                <tr><td colSpan={4} className="py-12 text-center text-billanga-gray text-sm">No hay movimientos registrados hoy.</td></tr>
+                <tr><td colSpan={4} className="py-12 text-center text-billanga-gray text-sm">No hay movimientos manuales registrados en este turno.</td></tr>
               )}
             </tbody>
           </table>
@@ -308,7 +483,7 @@ export default function CajaPage() {
             </div>
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
               <button onClick={() => setIsClosingCaja(false)} className="flex-1 py-2.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
-              <button onClick={handleCerrarCaja} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Lock className="w-4 h-4" /> Cerrar Caja</button>
+              <button onClick={handleCerrarCaja} className="flex-1 py-2.5 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm flex items-center justify-center gap-2"><Lock className="w-4 h-4" /> Cerrar y Generar Reporte</button>
             </div>
           </div>
         </div>

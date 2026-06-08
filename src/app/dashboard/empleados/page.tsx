@@ -101,18 +101,27 @@ export default function EmpleadosPage() {
           email: formData.email,
           id_rol: formData.id_rol,
           avatar_url: formData.avatar_url || null
-        }).eq("id_usuario", editingEmpleado.id_usuario);
+        }).eq("id_usuario", editingEmpleado.id_usuario).select();
         if (error) throw error;
       } else {
         // Crear
-        const { error } = await supabase.from("usuarios").insert({
+        const { data, error } = await supabase.from("usuarios").insert({
           nombre: formData.nombre,
           email: formData.email,
           id_rol: formData.id_rol,
           avatar_url: formData.avatar_url || null,
           activo: true
-        });
-        if (error) throw error;
+        }).select();
+        
+        if (error) {
+          if (error.code === '23505') {
+            throw new Error("El correo electrónico ya está registrado para otro empleado.");
+          }
+          throw error;
+        }
+        if (!data || data.length === 0) {
+          throw new Error("No se pudo crear el empleado por restricciones de la base de datos.");
+        }
       }
       setIsModalOpen(false);
       setEditingEmpleado(null);

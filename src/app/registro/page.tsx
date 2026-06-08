@@ -56,20 +56,6 @@ export default function RegistroPage() {
     }
 
     if (authData.user) {
-      // 1. Insertar en la tabla pública de clientes
-      const { error: dbError } = await supabase.from('clientes').insert({
-        auth_id: authData.user.id,
-        nombre: nombre,
-        email: email,
-        telefono: telefono || null,
-      });
-
-      if (dbError) {
-        setError("Error al crear el perfil: " + dbError.message);
-        setLoading(false);
-        return;
-      }
-
       // 2. Auto-login
       const { error: signInError } = await supabase.auth.signInWithPassword({
         email,
