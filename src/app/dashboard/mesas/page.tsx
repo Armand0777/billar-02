@@ -377,13 +377,15 @@ export default function MesasPage() {
     const existingItem = posVenta?.items?.find(i => i.id_producto === prod.id_producto);
 
     if (existingItem) {
-      const newCant = existingItem.cantidad + 1;
-      const { error } = await supabase
+      const newCant = Number(existingItem.cantidad) + 1;
+      const { data, error } = await supabase
         .from("venta_items")
         .update({ cantidad: newCant })
-        .eq("id_venta_item", existingItem.id_venta_item);
+        .eq("id_venta_item", existingItem.id_venta_item)
+        .select();
 
       if (error) { alert("Error al agregar cantidad: " + error.message); return; }
+      if (!data || data.length === 0) { alert("No se pudo actualizar el producto. Verifica los permisos de la base de datos."); return; }
     } else {
       const { error } = await supabase
         .from("venta_items")
@@ -405,21 +407,25 @@ export default function MesasPage() {
   const handleRemoveProduct = async (item: VentaItem) => {
     if (!posVenta) return;
 
-    if (item.cantidad > 1) {
-      const newCant = item.cantidad - 1;
-      const { error } = await supabase
+    if (Number(item.cantidad) > 1) {
+      const newCant = Number(item.cantidad) - 1;
+      const { data, error } = await supabase
         .from("venta_items")
         .update({ cantidad: newCant })
-        .eq("id_venta_item", item.id_venta_item);
+        .eq("id_venta_item", item.id_venta_item)
+        .select();
 
       if (error) { alert("Error al restar producto: " + error.message); return; }
+      if (!data || data.length === 0) { alert("No se pudo actualizar el producto. Verifica los permisos de la base de datos."); return; }
     } else {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from("venta_items")
         .delete()
-        .eq("id_venta_item", item.id_venta_item);
+        .eq("id_venta_item", item.id_venta_item)
+        .select();
       
       if (error) { alert("Error al eliminar producto: " + error.message); return; }
+      if (!data || data.length === 0) { alert("No se pudo eliminar el producto. Verifica los permisos de la base de datos."); return; }
     }
 
     // Recargar TODOS los items frescos de la BD
