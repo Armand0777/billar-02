@@ -151,6 +151,8 @@ CREATE TABLE tarifas (
   tipo_dia      tipo_dia_tarifa  NOT NULL DEFAULT 'todos',
   hora_inicio   TIME,
   hora_fin      TIME,
+  horas_pagadas INT              NOT NULL DEFAULT 0,
+  horas_regalo  INT              NOT NULL DEFAULT 0,
   activo        BOOLEAN          NOT NULL DEFAULT TRUE,
   created_at    TIMESTAMPTZ      NOT NULL DEFAULT NOW(),
   updated_at    TIMESTAMPTZ      NOT NULL DEFAULT NOW(),

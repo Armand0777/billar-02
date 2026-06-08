@@ -24,7 +24,7 @@ export default function ConfiguracionPage() {
   const [tarifas, setTarifas] = useState<any[]>([]);
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
   const [editingTarifa, setEditingTarifa] = useState<any>(null);
-  const [tarifaForm, setTarifaForm] = useState({ nombre: "", precio_hora: 0, tipo_dia: "todos" });
+  const [tarifaForm, setTarifaForm] = useState({ nombre: "", precio_hora: 0, tipo_dia: "todos", horas_pagadas: 0, horas_regalo: 0 });
 
   const supabase = createClient();
 
@@ -145,7 +145,9 @@ export default function ConfiguracionPage() {
         await supabase.from("tarifas").update({
           nombre: tarifaForm.nombre,
           precio_hora: tarifaForm.precio_hora,
-          tipo_dia: tarifaForm.tipo_dia
+          tipo_dia: tarifaForm.tipo_dia,
+          horas_pagadas: tarifaForm.horas_pagadas || 0,
+          horas_regalo: tarifaForm.horas_regalo || 0
         }).eq("id_tarifa", editingTarifa.id_tarifa);
       } else {
         await supabase.from("tarifas").insert([{
@@ -153,6 +155,8 @@ export default function ConfiguracionPage() {
           nombre: tarifaForm.nombre,
           precio_hora: tarifaForm.precio_hora,
           tipo_dia: tarifaForm.tipo_dia,
+          horas_pagadas: tarifaForm.horas_pagadas || 0,
+          horas_regalo: tarifaForm.horas_regalo || 0,
           activo: true
         }]);
       }
@@ -327,7 +331,7 @@ export default function ConfiguracionPage() {
                 type="button"
                 onClick={() => {
                   setEditingTarifa(null);
-                  setTarifaForm({ nombre: "", precio_hora: 0, tipo_dia: "todos" });
+                  setTarifaForm({ nombre: "", precio_hora: 0, tipo_dia: "todos", horas_pagadas: 0, horas_regalo: 0 });
                   setIsTarifaModalOpen(true);
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 bg-billanga-primary/20 text-billanga-primary hover:bg-billanga-primary hover:text-white rounded-lg text-sm font-semibold transition-colors"
@@ -337,12 +341,11 @@ export default function ConfiguracionPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-              {tarifas.map(tarifa => (
                 <div key={tarifa.id_tarifa} className={`p-4 rounded-xl border transition-all ${tarifa.activo ? 'bg-[#121212] border-[#2a2a2c]' : 'bg-black/20 border-red-500/20 opacity-70'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-white">{tarifa.nombre}</h4>
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => { setEditingTarifa(tarifa); setTarifaForm({ nombre: tarifa.nombre, precio_hora: Number(tarifa.precio_hora), tipo_dia: tarifa.tipo_dia }); setIsTarifaModalOpen(true); }} className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors">
+                      <button type="button" onClick={() => { setEditingTarifa(tarifa); setTarifaForm({ nombre: tarifa.nombre, precio_hora: Number(tarifa.precio_hora), tipo_dia: tarifa.tipo_dia, horas_pagadas: Number(tarifa.horas_pagadas || 0), horas_regalo: Number(tarifa.horas_regalo || 0) }); setIsTarifaModalOpen(true); }} className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button type="button" onClick={() => handleToggleTarifaActive(tarifa.id_tarifa, tarifa.activo)} className={`p-1.5 rounded-lg transition-colors ${tarifa.activo ? 'bg-zinc-800 hover:bg-red-500/20 text-zinc-300 hover:text-red-400' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
@@ -353,8 +356,15 @@ export default function ConfiguracionPage() {
                   <div className="text-2xl font-bold text-billanga-primary mb-1">
                     {currency} {Number(tarifa.precio_hora).toFixed(2)} <span className="text-xs text-billanga-gray font-normal">/ hora</span>
                   </div>
-                  <div className="text-xs text-billanga-gray bg-zinc-800/50 inline-block px-2 py-1 rounded">
-                    Aplicación: {tarifa.tipo_dia.toUpperCase()}
+                  <div className="flex flex-col gap-1 mt-2">
+                    <span className="text-xs text-billanga-gray bg-zinc-800/50 inline-block px-2 py-1 rounded w-fit">
+                      Aplicación: {tarifa.tipo_dia.toUpperCase()}
+                    </span>
+                    {(tarifa.horas_regalo > 0) && (
+                      <span className="text-xs font-bold text-green-400 bg-green-500/10 inline-block px-2 py-1 rounded w-fit">
+                        🎁 Promo: Paga {tarifa.horas_pagadas}h, Juega {tarifa.horas_pagadas + tarifa.horas_regalo}h
+                      </span>
+                    )}
                   </div>
                 </div>
               ))}
@@ -396,6 +406,22 @@ export default function ConfiguracionPage() {
                       <option value="feriado">Feriado</option>
                     </select>
                   </div>
+                </div>
+                <div className="border-t border-[#2a2a2c] pt-4 mt-4">
+                  <h4 className="text-sm font-bold text-white mb-3">🎁 Configuración de Promoción (Opcional)</h4>
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Horas que Paga</label>
+                      <input type="number" min="0" value={tarifaForm.horas_pagadas} onChange={e => setTarifaForm({...tarifaForm, horas_pagadas: parseInt(e.target.value) || 0})} className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 2" />
+                    </div>
+                    <div>
+                      <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Horas de Regalo</label>
+                      <input type="number" min="0" value={tarifaForm.horas_regalo} onChange={e => setTarifaForm({...tarifaForm, horas_regalo: parseInt(e.target.value) || 0})} className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 1" />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-billanga-gray mt-2">
+                    Ejemplo para 3x2 (juega 3, paga 2): Horas que Paga = 2, Horas de Regalo = 1. Si no hay promoción, deja ambos en 0.
+                  </p>
                 </div>
               </div>
               <div className="p-5 border-t border-[#2a2a2c] flex gap-3 justify-end bg-black/20">

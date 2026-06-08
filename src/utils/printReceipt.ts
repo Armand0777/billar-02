@@ -9,6 +9,7 @@ export interface ReceiptData {
     tarifaNombre?: string;
     horaInicio?: string;
     precioPorHora?: number;
+    horasRegaloPromo?: number;
   };
   productos: {
     nombre: string;
@@ -44,9 +45,15 @@ export function printReceipt(data: ReceiptData) {
       </div>
       ` : ''}
       <div class="row text-sm">
-        <span>Tiempo de juego</span>
+        <span>Tiempo total jugado</span>
         <span>${data.tiempo.horas} hrs</span>
       </div>
+      ${(data.tiempo.horasRegaloPromo && data.tiempo.horasRegaloPromo > 0) ? `
+      <div class="row text-sm">
+        <span>Horas Regalo (Promo)</span>
+        <span>- ${data.tiempo.horasRegaloPromo} hrs</span>
+      </div>
+      ` : ''}
       <div class="row text-sm" style="margin-bottom: 5px;">
         <span>Costo del tiempo</span>
         <span>${data.tiempo.costo.toFixed(2)} Bs.</span>

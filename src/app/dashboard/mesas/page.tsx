@@ -452,6 +452,12 @@ export default function MesasPage() {
     let timeString = "00:00:00";
     let accumulatedValue = "0.00";
     let isTimeUp = false;
+    
+    // Promo vars
+    const pagadas = Number(tarifa?.horas_pagadas || 0);
+    const regalo = Number(tarifa?.horas_regalo || 0);
+    const bloque = pagadas + regalo;
+    let horasRegaloPromo = 0;
 
     if (isPartida) {
       timeString = "--:--:--";
@@ -477,7 +483,16 @@ export default function MesasPage() {
       const secs = diffSecs % 60;
       timeString = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       
-      accumulatedValue = ((diffSecs / 3600) * precioHora).toFixed(2);
+      const horasCompletas = diffSecs / 3600;
+      let horasACobrar = horasCompletas;
+      
+      if (bloque > 0 && pagadas > 0 && horasCompletas >= bloque) {
+        const numBloques = Math.floor(horasCompletas / bloque);
+        horasRegaloPromo = numBloques * regalo;
+        horasACobrar = horasCompletas - horasRegaloPromo;
+      }
+      
+      accumulatedValue = (horasACobrar * precioHora).toFixed(2);
     }
 
     return {
@@ -489,6 +504,7 @@ export default function MesasPage() {
       isFijo,
       isTimeUp,
       precioHora,
+      horasRegaloPromo,
       horaInicio: inicio.toLocaleString("es-BO", { hour12: false })
     };
   };
@@ -537,7 +553,8 @@ export default function MesasPage() {
           costo: totalTiempo,
           tarifaNombre: sessionDetails.tarifaNombre,
           horaInicio: sessionDetails.horaInicio,
-          precioPorHora: sessionDetails.precioHora
+          precioPorHora: sessionDetails.precioHora,
+          horasRegaloPromo: sessionDetails.horasRegaloPromo
         },
         productos: (posVenta?.items || []).map(i => ({
           nombre: i.producto?.nombre || "Producto",
