@@ -341,6 +341,7 @@ export default function ConfiguracionPage() {
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {tarifas.map(tarifa => (
                 <div key={tarifa.id_tarifa} className={`p-4 rounded-xl border transition-all ${tarifa.activo ? 'bg-[#121212] border-[#2a2a2c]' : 'bg-black/20 border-red-500/20 opacity-70'}`}>
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-white">{tarifa.nombre}</h4>
