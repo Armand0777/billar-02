@@ -23,6 +23,7 @@ interface Empleado {
   activo: boolean;
   created_at: string;
   avatar_url?: string;
+  id_sucursal?: string;
   roles?: {
     nombre: string;
     nivel: number;
@@ -34,6 +35,7 @@ export default function EmpleadosPage() {
   const [dbError, setDbError] = useState("");
   const [empleados, setEmpleados] = useState<Empleado[]>([]);
   const [roles, setRoles] = useState<Rol[]>([]);
+  const [sucursales, setSucursales] = useState<any[]>([]);
 
   // Filtros
   const [searchQuery, setSearchQuery] = useState("");
@@ -42,7 +44,7 @@ export default function EmpleadosPage() {
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmpleado, setEditingEmpleado] = useState<Empleado | null>(null);
-  const [formData, setFormData] = useState({ nombre: "", email: "", id_rol: "", avatar_url: "" });
+  const [formData, setFormData] = useState({ nombre: "", email: "", id_rol: "", avatar_url: "", id_sucursal: "" });
 
   const supabase = createClient();
 
@@ -56,16 +58,21 @@ export default function EmpleadosPage() {
       if (rolesError) throw rolesError;
       setRoles(rolesData || []);
 
+      const { data: sucData, error: sucError } = await supabase.from("sucursales").select("id_sucursal, nombre").eq("activo", true);
+      if (sucError) throw sucError;
+      setSucursales(sucData || []);
+
       const { data: empData, error: empError } = await supabase
         .from("usuarios")
-        .select(`*, roles:id_rol(id_rol, nombre, nivel, descripcion)`)
+        .select(`*, roles:id_rol(id_rol, nombre, nivel, descripcion), usuario_sucursal(id_sucursal)`)
         .order("created_at", { ascending: false });
       
       if (empError) throw empError;
 
       const normalized = (empData || []).map((e: any) => ({
         ...e,
-        roles: Array.isArray(e.roles) ? e.roles[0] : e.roles
+        roles: Array.isArray(e.roles) ? e.roles[0] : e.roles,
+        id_sucursal: Array.isArray(e.usuario_sucursal) && e.usuario_sucursal.length > 0 ? e.usuario_sucursal[0].id_sucursal : ""
       }));
       setEmpleados(normalized);
     } catch (err: any) {
@@ -78,13 +85,13 @@ export default function EmpleadosPage() {
 
   const handleOpenCreate = () => {
     setEditingEmpleado(null);
-    setFormData({ nombre: "", email: "", id_rol: roles[0]?.id_rol || "", avatar_url: "" });
+    setFormData({ nombre: "", email: "", id_rol: roles[0]?.id_rol || "", avatar_url: "", id_sucursal: "" });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (emp: Empleado) => {
     setEditingEmpleado(emp);
-    setFormData({ nombre: emp.nombre, email: emp.email, id_rol: emp.id_rol || "", avatar_url: emp.avatar_url || "" });
+    setFormData({ nombre: emp.nombre, email: emp.email, id_rol: emp.id_rol || "", avatar_url: emp.avatar_url || "", id_sucursal: emp.id_sucursal || "" });
     setIsModalOpen(true);
   };
 
@@ -94,15 +101,17 @@ export default function EmpleadosPage() {
     }
 
     try {
+      let idUsuario = "";
       if (editingEmpleado) {
         // Actualizar
-        const { error } = await supabase.from("usuarios").update({
+        const { error, data } = await supabase.from("usuarios").update({
           nombre: formData.nombre,
           email: formData.email,
           id_rol: formData.id_rol,
           avatar_url: formData.avatar_url || null
         }).eq("id_usuario", editingEmpleado.id_usuario).select();
         if (error) throw error;
+        idUsuario = editingEmpleado.id_usuario;
       } else {
         // Crear
         const { data, error } = await supabase.from("usuarios").insert({
@@ -122,7 +131,22 @@ export default function EmpleadosPage() {
         if (!data || data.length === 0) {
           throw new Error("No se pudo crear el empleado por restricciones de la base de datos.");
         }
+        idUsuario = data[0].id_usuario;
       }
+
+      if (idUsuario) {
+        if (formData.id_sucursal) {
+          const { data: usData } = await supabase.from("usuario_sucursal").select("id_usuario_sucursal").eq("id_usuario", idUsuario);
+          if (usData && usData.length > 0) {
+            await supabase.from("usuario_sucursal").update({ id_sucursal: formData.id_sucursal, id_rol: formData.id_rol }).eq("id_usuario", idUsuario);
+          } else {
+            await supabase.from("usuario_sucursal").insert({ id_usuario: idUsuario, id_sucursal: formData.id_sucursal, id_rol: formData.id_rol });
+          }
+        } else {
+          await supabase.from("usuario_sucursal").delete().eq("id_usuario", idUsuario);
+        }
+      }
+
       setIsModalOpen(false);
       setEditingEmpleado(null);
       loadData();
@@ -259,6 +283,13 @@ export default function EmpleadosPage() {
                 <label className="text-sm font-medium text-billanga-gray block mb-1">Rol *</label>
                 <select value={formData.id_rol} onChange={e => setFormData({ ...formData, id_rol: e.target.value })} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary capitalize">
                   {roles.map(r => (<option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>))}
+                </select>
+              </div>
+              <div>
+                <label className="text-sm font-medium text-billanga-gray block mb-1">Sucursal Asignada</label>
+                <select value={formData.id_sucursal} onChange={e => setFormData({ ...formData, id_sucursal: e.target.value })} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary">
+                  <option value="">Sin Sucursal (Flotante o Admin)</option>
+                  {sucursales.map(s => (<option key={s.id_sucursal} value={s.id_sucursal}>{s.nombre}</option>))}
                 </select>
               </div>
             </div>

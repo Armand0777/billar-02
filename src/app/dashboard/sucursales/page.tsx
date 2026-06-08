@@ -141,7 +141,6 @@ export default function SucursalesPage() {
         </div>
         <div className="flex gap-2">
           <button onClick={loadData} className="flex items-center gap-2 px-4 py-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-lg text-sm transition-all"><RefreshCw className="w-4 h-4" /> Refrescar</button>
-          <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-lg text-sm font-bold transition-all"><PlusCircle className="w-4 h-4" /> Nueva Sucursal</button>
         </div>
       </div>
 
