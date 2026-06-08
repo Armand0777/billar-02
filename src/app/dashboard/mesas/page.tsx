@@ -375,7 +375,7 @@ export default function MesasPage() {
 
       const { data: updatedItem, error } = await supabase
         .from("venta_items")
-        .update({ cantidad: newCant, subtotal: newSubtotal })
+        .update({ cantidad: newCant })
         .eq("id_venta_item", existingItem.id_venta_item)
         .select("*, producto:productos(*)")
         .single();
@@ -399,8 +399,7 @@ export default function MesasPage() {
           id_venta: currentVentaId,
           id_producto: prod.id_producto,
           cantidad: 1,
-          precio_unitario: prod.precio_venta,
-          subtotal: prod.precio_venta
+          precio_unitario: prod.precio_venta
         })
         .select("*, producto:productos(*)")
         .single();
@@ -426,7 +425,7 @@ export default function MesasPage() {
       const newSubtotal = newCant * item.precio_unitario;
       const { data: updatedItem, error } = await supabase
         .from("venta_items")
-        .update({ cantidad: newCant, subtotal: newSubtotal })
+        .update({ cantidad: newCant })
         .eq("id_venta_item", item.id_venta_item)
         .select("*, producto:productos(*)")
         .single();
