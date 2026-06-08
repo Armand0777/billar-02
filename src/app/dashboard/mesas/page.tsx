@@ -331,6 +331,15 @@ export default function MesasPage() {
     }
   };
 
+  // Helper: recarga todos los items de una venta desde la BD
+  const reloadVentaItems = async (ventaId: string) => {
+    const { data: itemsData } = await supabase
+      .from("venta_items")
+      .select("*, producto:productos(*)")
+      .eq("id_venta", ventaId);
+    return itemsData || [];
+  };
+
   const handleAddProduct = async (prod: Producto) => {
     if (!posMesa || !posSesion || !currentUser || !activeSucursalId) return;
 
@@ -363,58 +372,34 @@ export default function MesasPage() {
         if (createError) { alert("Error al crear cuenta: " + createError.message); return; }
         currentVentaId = newVenta!.id_venta;
       }
-      // Asegurarse de que posVenta tenga el ID
-      setPosVenta(prev => prev ? { ...prev, id_venta: currentVentaId as string } : { id_venta: currentVentaId as string, items: [] });
     }
 
     const existingItem = posVenta?.items?.find(i => i.id_producto === prod.id_producto);
 
     if (existingItem) {
       const newCant = existingItem.cantidad + 1;
-      const newSubtotal = newCant * existingItem.precio_unitario;
-
-      const { data: updatedItem, error } = await supabase
+      const { error } = await supabase
         .from("venta_items")
         .update({ cantidad: newCant })
-        .eq("id_venta_item", existingItem.id_venta_item)
-        .select("*, producto:productos(*)")
-        .single();
+        .eq("id_venta_item", existingItem.id_venta_item);
 
       if (error) { alert("Error al agregar cantidad: " + error.message); return; }
-
-      if (updatedItem) {
-        setPosVenta(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            id_venta: currentVentaId as string,
-            items: prev.items.map(i => i.id_venta_item === existingItem.id_venta_item ? updatedItem : i)
-          };
-        });
-      }
     } else {
-      const { data: newItem, error } = await supabase
+      const { error } = await supabase
         .from("venta_items")
         .insert({
           id_venta: currentVentaId,
           id_producto: prod.id_producto,
           cantidad: 1,
           precio_unitario: prod.precio_venta
-        })
-        .select("*, producto:productos(*)")
-        .single();
+        });
       
       if (error) { alert("Error al agregar producto: " + error.message); return; }
-
-      if (newItem) {
-        setPosVenta(prev => {
-          return {
-            id_venta: currentVentaId as string,
-            items: [...(prev?.items || []), newItem]
-          };
-        });
-      }
     }
+
+    // Recargar TODOS los items frescos de la BD
+    const freshItems = await reloadVentaItems(currentVentaId as string);
+    setPosVenta({ id_venta: currentVentaId as string, items: freshItems });
   };
 
   const handleRemoveProduct = async (item: VentaItem) => {
@@ -422,38 +407,24 @@ export default function MesasPage() {
 
     if (item.cantidad > 1) {
       const newCant = item.cantidad - 1;
-      const newSubtotal = newCant * item.precio_unitario;
-      const { data: updatedItem, error } = await supabase
+      const { error } = await supabase
         .from("venta_items")
         .update({ cantidad: newCant })
-        .eq("id_venta_item", item.id_venta_item)
-        .select("*, producto:productos(*)")
-        .single();
+        .eq("id_venta_item", item.id_venta_item);
 
       if (error) { alert("Error al restar producto: " + error.message); return; }
-
-      if (updatedItem) {
-        setPosVenta(prev => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            items: prev.items.map(i => i.id_venta_item === item.id_venta_item ? updatedItem : i)
-          };
-        });
-      }
     } else {
-      const { error } = await supabase.from("venta_items").delete().eq("id_venta_item", item.id_venta_item);
+      const { error } = await supabase
+        .from("venta_items")
+        .delete()
+        .eq("id_venta_item", item.id_venta_item);
       
       if (error) { alert("Error al eliminar producto: " + error.message); return; }
-
-      setPosVenta(prev => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          items: prev.items.filter(i => i.id_venta_item !== item.id_venta_item)
-        };
-      });
     }
+
+    // Recargar TODOS los items frescos de la BD
+    const freshItems = await reloadVentaItems(posVenta.id_venta);
+    setPosVenta({ id_venta: posVenta.id_venta, items: freshItems });
   };
 
   // ----- Cálculos Dinámicos de Sesión -----
