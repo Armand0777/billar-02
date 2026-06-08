@@ -24,6 +24,8 @@ interface Tarifa {
   nombre: string;
   precio_hora: number;
   tipo_dia: string;
+  horas_pagadas?: number;
+  horas_regalo?: number;
 }
 
 interface SesionMesa {
