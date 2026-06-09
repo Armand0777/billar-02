@@ -47,6 +47,7 @@ export default function LoginPage() {
         .select(`
           id_usuario,
           id_rol,
+          activo,
           roles (
             nivel
           )
@@ -54,7 +55,14 @@ export default function LoginPage() {
         .eq("auth_id", user.id)
         .maybeSingle();
 
-      if (staffData && staffData.id_rol) {
+      if (staffData) {
+        if (staffData.activo === false) {
+          await supabase.auth.signOut();
+          setError("Cuenta inválida. Tu acceso ha sido desactivado.");
+          setLoading(false);
+          return;
+        }
+
         const rolObj = staffData.roles ? (Array.isArray(staffData.roles) ? staffData.roles[0] : staffData.roles) : null;
         const level = rolObj?.nivel || 0;
 
@@ -64,6 +72,20 @@ export default function LoginPage() {
           router.push("/dashboard/mesas");
         }
       } else {
+        // Verificar si es cliente y está activo
+        const { data: clientData } = await supabase
+          .from("clientes")
+          .select("activo")
+          .eq("auth_id", user.id)
+          .maybeSingle();
+
+        if (clientData && clientData.activo === false) {
+          await supabase.auth.signOut();
+          setError("Cuenta inválida. Tu acceso ha sido desactivado.");
+          setLoading(false);
+          return;
+        }
+
         router.push("/");
       }
       router.refresh();
