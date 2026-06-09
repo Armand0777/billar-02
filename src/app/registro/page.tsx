@@ -66,7 +66,7 @@ export default function RegistroPage() {
 
     setSuccess("¡Cuenta creada exitosamente! Iniciando sesión...");
     setTimeout(() => {
-      router.push("/dashboard"); // Redirigir al dashboard u otra página interna
+      router.push("/"); // Redirigir al inicio o portal del cliente
     }, 1500);
   }
 
