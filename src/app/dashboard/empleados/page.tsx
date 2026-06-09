@@ -45,6 +45,7 @@ export default function EmpleadosPage() {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmpleado, setEditingEmpleado] = useState<Empleado | null>(null);
   const [formData, setFormData] = useState({ nombre: "", email: "", id_rol: "", avatar_url: "", id_sucursal: "", password: "" });
+  const [mostrarInactivos, setMostrarInactivos] = useState(false);
 
   const supabase = createClient();
 
@@ -157,19 +158,8 @@ export default function EmpleadosPage() {
     } catch (err: any) { alert("Error: " + err.message); }
   };
 
-  const handleDelete = async (emp: Empleado) => {
-    if (!confirm(`¿Estás seguro de que quieres eliminar a ${emp.nombre}? Esto le quitará el acceso al sistema inmediatamente.`)) return;
-    try {
-      const res = await fetch(`/api/admin/users?id=${emp.id_usuario}`, { method: "DELETE" });
-      const json = await res.json();
-      if (!res.ok) throw new Error(json.error || "Error al eliminar");
-      loadData();
-    } catch (err: any) {
-      alert("Error: " + err.message);
-    }
-  };
-
   const filtered = empleados.filter(e => {
+    if (!mostrarInactivos && !e.activo) return false;
     if (selectedRol !== "all" && e.id_rol !== selectedRol) return false;
     if (searchQuery && !e.nombre.toLowerCase().includes(searchQuery.toLowerCase()) && !e.email.toLowerCase().includes(searchQuery.toLowerCase())) return false;
     return true;
@@ -211,6 +201,10 @@ export default function EmpleadosPage() {
             <option value="all">Todos los Roles</option>
             {roles.map(r => (<option key={r.id_rol} value={r.id_rol}>{r.nombre}</option>))}
           </select>
+          <label className="flex items-center gap-2 text-sm text-billanga-gray cursor-pointer ml-2">
+            <input type="checkbox" checked={mostrarInactivos} onChange={e => setMostrarInactivos(e.target.checked)} className="rounded border-[#2a2a2c] text-billanga-primary bg-black/40" />
+            Mostrar inactivos
+          </label>
         </div>
         <button onClick={handleOpenCreate} className="flex items-center gap-2 px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-lg text-sm font-bold transition-all whitespace-nowrap"><UserPlus className="w-4 h-4" /> Nuevo Empleado</button>
       </div>
@@ -252,7 +246,6 @@ export default function EmpleadosPage() {
                   <td className="py-3 text-xs text-billanga-gray">{new Date(emp.created_at).toLocaleDateString("es-BO")}</td>
                   <td className="py-3 pr-6 text-center">
                     <button onClick={() => handleOpenEdit(emp)} className="px-3 py-1.5 bg-[#2a2a2c] hover:bg-billanga-primary hover:text-white rounded-lg text-xs font-bold transition-all text-billanga-gray inline-flex items-center gap-1"><Edit3 className="w-3 h-3" /> Editar</button>
-                    <button onClick={() => handleDelete(emp)} className="px-3 py-1.5 bg-[#2a2a2c] hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold transition-all text-billanga-gray inline-flex items-center gap-1 ml-2"><Trash2 className="w-3 h-3" /> Eliminar</button>
                   </td>
                 </tr>
               )) : (
