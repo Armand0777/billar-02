@@ -37,36 +37,31 @@ export default function RegistroPage() {
       return;
     }
 
-    const supabase = createClient();
-    const { data: authData, error: authError } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: {
-          nombre,
-          telefono: telefono || null,
-        },
-      },
+    const res = await fetch("/api/auth/register-client", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ nombre, email, password, telefono }),
     });
 
-    if (authError) {
-      setError(authError.message);
+    const json = await res.json();
+
+    if (!res.ok) {
+      setError(json.error || "Error al crear la cuenta.");
       setLoading(false);
       return;
     }
 
-    if (authData.user) {
-      // 2. Auto-login
-      const { error: signInError } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
+    // Auto-login since the account is created and email is auto-confirmed
+    const supabase = createClient();
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
 
-      if (signInError) {
-        setError("Cuenta creada, pero hubo un error al iniciar sesión: " + signInError.message);
-        setLoading(false);
-        return;
-      }
+    if (signInError) {
+      setError("Cuenta creada, pero hubo un error al iniciar sesión: " + signInError.message);
+      setLoading(false);
+      return;
     }
 
     setSuccess("¡Cuenta creada exitosamente! Iniciando sesión...");
