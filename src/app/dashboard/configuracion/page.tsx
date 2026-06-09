@@ -24,7 +24,12 @@ export default function ConfiguracionPage() {
   const [tarifas, setTarifas] = useState<any[]>([]);
   const [isTarifaModalOpen, setIsTarifaModalOpen] = useState(false);
   const [editingTarifa, setEditingTarifa] = useState<any>(null);
-  const [tarifaForm, setTarifaForm] = useState({ nombre: "", precio_hora: 0, tipo_dia: "todos", horas_pagadas: 0, horas_regalo: 0 });
+  const [productos, setProductos] = useState<any[]>([]);
+  const [tarifaForm, setTarifaForm] = useState({ 
+    nombre: "", precio_hora: 0, tipo_dia: "todos", horas_pagadas: 0, horas_regalo: 0,
+    descripcion: "", es_promocion: false, dias_semana: [] as number[],
+    fecha_inicio: "", fecha_fin: "", precio_fijo: 0, personas: 1, productos_incluidos: [] as any[]
+  });
 
   const supabase = createClient();
 
@@ -51,6 +56,9 @@ export default function ConfiguracionPage() {
       if (sucursalId) {
         const { data: tarifasData } = await supabase.from("tarifas").select("*").eq("id_sucursal", sucursalId).order("created_at");
         setTarifas(tarifasData || []);
+
+        const { data: productosData } = await supabase.from("productos").select("id_producto, nombre").eq("activo", true);
+        setProductos(productosData || []);
       }
 
       // 2. Cargar configuración (idealmente filtrada por usuario o sucursal, aquí tomamos la primera o la del usuario si aplica)
@@ -141,23 +149,29 @@ export default function ConfiguracionPage() {
     if (!activeSucursalId) return;
     
     try {
+      const tarifaPayload = {
+        nombre: tarifaForm.nombre,
+        precio_hora: tarifaForm.precio_hora,
+        tipo_dia: tarifaForm.tipo_dia,
+        horas_pagadas: tarifaForm.horas_pagadas || 0,
+        horas_regalo: tarifaForm.horas_regalo || 0,
+        descripcion: tarifaForm.descripcion,
+        es_promocion: tarifaForm.es_promocion,
+        dias_semana: tarifaForm.dias_semana,
+        fecha_inicio: tarifaForm.fecha_inicio || null,
+        fecha_fin: tarifaForm.fecha_fin || null,
+        precio_fijo: tarifaForm.precio_fijo || null,
+        personas: tarifaForm.personas || 1,
+        productos_incluidos: tarifaForm.productos_incluidos
+      };
+
       if (editingTarifa) {
-        await supabase.from("tarifas").update({
-          nombre: tarifaForm.nombre,
-          precio_hora: tarifaForm.precio_hora,
-          tipo_dia: tarifaForm.tipo_dia,
-          horas_pagadas: tarifaForm.horas_pagadas || 0,
-          horas_regalo: tarifaForm.horas_regalo || 0
-        }).eq("id_tarifa", editingTarifa.id_tarifa);
+        await supabase.from("tarifas").update(tarifaPayload).eq("id_tarifa", editingTarifa.id_tarifa);
       } else {
         await supabase.from("tarifas").insert([{
           id_sucursal: activeSucursalId,
-          nombre: tarifaForm.nombre,
-          precio_hora: tarifaForm.precio_hora,
-          tipo_dia: tarifaForm.tipo_dia,
-          horas_pagadas: tarifaForm.horas_pagadas || 0,
-          horas_regalo: tarifaForm.horas_regalo || 0,
-          activo: true
+          activo: true,
+          ...tarifaPayload
         }]);
       }
       
@@ -331,7 +345,10 @@ export default function ConfiguracionPage() {
                 type="button"
                 onClick={() => {
                   setEditingTarifa(null);
-                  setTarifaForm({ nombre: "", precio_hora: 0, tipo_dia: "todos", horas_pagadas: 0, horas_regalo: 0 });
+                  setTarifaForm({ 
+                    nombre: "", precio_hora: 0, tipo_dia: "todos", horas_pagadas: 0, horas_regalo: 0,
+                    descripcion: "", es_promocion: false, dias_semana: [], fecha_inicio: "", fecha_fin: "", precio_fijo: 0, personas: 1, productos_incluidos: []
+                  });
                   setIsTarifaModalOpen(true);
                 }}
                 className="flex items-center gap-2 px-3 py-1.5 bg-billanga-primary/20 text-billanga-primary hover:bg-billanga-primary hover:text-white rounded-lg text-sm font-semibold transition-colors"
@@ -346,7 +363,7 @@ export default function ConfiguracionPage() {
                   <div className="flex justify-between items-start mb-2">
                     <h4 className="font-bold text-white">{tarifa.nombre}</h4>
                     <div className="flex gap-2">
-                      <button type="button" onClick={() => { setEditingTarifa(tarifa); setTarifaForm({ nombre: tarifa.nombre, precio_hora: Number(tarifa.precio_hora), tipo_dia: tarifa.tipo_dia, horas_pagadas: Number(tarifa.horas_pagadas || 0), horas_regalo: Number(tarifa.horas_regalo || 0) }); setIsTarifaModalOpen(true); }} className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors">
+                      <button type="button" onClick={() => { setEditingTarifa(tarifa); setTarifaForm({ nombre: tarifa.nombre, precio_hora: Number(tarifa.precio_hora), tipo_dia: tarifa.tipo_dia, horas_pagadas: Number(tarifa.horas_pagadas || 0), horas_regalo: Number(tarifa.horas_regalo || 0), descripcion: tarifa.descripcion || "", es_promocion: tarifa.es_promocion || false, dias_semana: tarifa.dias_semana || [], fecha_inicio: tarifa.fecha_inicio || "", fecha_fin: tarifa.fecha_fin || "", precio_fijo: Number(tarifa.precio_fijo || 0), personas: Number(tarifa.personas || 1), productos_incluidos: tarifa.productos_incluidos || [] }); setIsTarifaModalOpen(true); }} className="p-1.5 bg-zinc-800 hover:bg-zinc-700 text-zinc-300 rounded-lg transition-colors">
                         <Edit2 className="w-3.5 h-3.5" />
                       </button>
                       <button type="button" onClick={() => handleToggleTarifaActive(tarifa.id_tarifa, tarifa.activo)} className={`p-1.5 rounded-lg transition-colors ${tarifa.activo ? 'bg-zinc-800 hover:bg-red-500/20 text-zinc-300 hover:text-red-400' : 'bg-green-500/20 text-green-400 hover:bg-green-500/30'}`}>
@@ -395,7 +412,7 @@ export default function ConfiguracionPage() {
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <label className="block text-xs font-bold text-billanga-gray uppercase mb-2">Precio por Hora</label>
+                    <label className="block text-xs font-bold text-billanga-gray uppercase mb-2">Precio por Hora (Bs.)</label>
                     <input type="number" step="0.5" value={tarifaForm.precio_hora} onChange={e => setTarifaForm({...tarifaForm, precio_hora: parseFloat(e.target.value) || 0})} className="w-full px-4 py-3 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" required />
                   </div>
                   <div>
@@ -408,21 +425,134 @@ export default function ConfiguracionPage() {
                     </select>
                   </div>
                 </div>
+
                 <div className="border-t border-[#2a2a2c] pt-4 mt-4">
-                  <h4 className="text-sm font-bold text-white mb-3">🎁 Configuración de Promoción (Opcional)</h4>
-                  <div className="grid grid-cols-2 gap-4">
-                    <div>
-                      <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Horas que Paga</label>
-                      <input type="number" min="0" value={tarifaForm.horas_pagadas} onChange={e => setTarifaForm({...tarifaForm, horas_pagadas: parseInt(e.target.value) || 0})} className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 2" />
-                    </div>
-                    <div>
-                      <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Horas de Regalo</label>
-                      <input type="number" min="0" value={tarifaForm.horas_regalo} onChange={e => setTarifaForm({...tarifaForm, horas_regalo: parseInt(e.target.value) || 0})} className="w-full px-4 py-2.5 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 1" />
-                    </div>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                      🎁 ¿Es una Promoción?
+                    </h4>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input type="checkbox" checked={tarifaForm.es_promocion} onChange={(e) => setTarifaForm({...tarifaForm, es_promocion: e.target.checked})} className="sr-only peer" />
+                      <div className="w-11 h-6 bg-zinc-800 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-zinc-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-billanga-primary"></div>
+                    </label>
                   </div>
-                  <p className="text-[10px] text-billanga-gray mt-2">
-                    Ejemplo para 3x2 (juega 3, paga 2): Horas que Paga = 2, Horas de Regalo = 1. Si no hay promoción, deja ambos en 0.
-                  </p>
+
+                  {tarifaForm.es_promocion && (
+                    <div className="space-y-4 animate-in fade-in duration-300">
+                      <div>
+                        <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Descripción Breve</label>
+                        <input type="text" value={tarifaForm.descripcion} onChange={e => setTarifaForm({...tarifaForm, descripcion: e.target.value})} className="w-full px-4 py-2 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 2 horas + 1 Paceña gratis" />
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Precio Fijo Opcional (Bs.)</label>
+                          <input type="number" step="0.5" min="0" value={tarifaForm.precio_fijo} onChange={e => setTarifaForm({...tarifaForm, precio_fijo: parseFloat(e.target.value) || 0})} className="w-full px-4 py-2 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Si tiene valor, anula precio x hora" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Personas Válidas</label>
+                          <input type="number" min="1" value={tarifaForm.personas} onChange={e => setTarifaForm({...tarifaForm, personas: parseInt(e.target.value) || 1})} className="w-full px-4 py-2 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 gap-4">
+                        <div>
+                          <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Horas que Paga</label>
+                          <input type="number" min="0" value={tarifaForm.horas_pagadas} onChange={e => setTarifaForm({...tarifaForm, horas_pagadas: parseInt(e.target.value) || 0})} className="w-full px-4 py-2 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 2" />
+                        </div>
+                        <div>
+                          <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Horas de Regalo</label>
+                          <input type="number" min="0" value={tarifaForm.horas_regalo} onChange={e => setTarifaForm({...tarifaForm, horas_regalo: parseInt(e.target.value) || 0})} className="w-full px-4 py-2 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: 1" />
+                        </div>
+                      </div>
+                      <p className="text-[10px] text-billanga-gray -mt-2">Ej: Promo 3x2, Horas que paga=2, Horas regalo=1.</p>
+
+                      <div>
+                        <label className="block text-xs font-bold text-billanga-gray uppercase mb-1">Días de la semana</label>
+                        <div className="flex flex-wrap gap-2">
+                          {['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'].map((d, i) => {
+                            const dayNumber = i === 6 ? 0 : i + 1; // Dom=0, Lun=1...
+                            const isSelected = tarifaForm.dias_semana.includes(dayNumber);
+                            return (
+                              <button
+                                key={d}
+                                type="button"
+                                onClick={() => {
+                                  const newDays = isSelected 
+                                    ? tarifaForm.dias_semana.filter(n => n !== dayNumber) 
+                                    : [...tarifaForm.dias_semana, dayNumber];
+                                  setTarifaForm({...tarifaForm, dias_semana: newDays});
+                                }}
+                                className={`px-2 py-1 rounded-md text-xs font-bold transition-colors ${isSelected ? 'bg-billanga-primary text-white' : 'bg-zinc-800 text-zinc-400 hover:bg-zinc-700'}`}
+                              >
+                                {d}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      <div className="bg-black/20 p-3 rounded-xl border border-[#2a2a2c]">
+                        <label className="block text-xs font-bold text-billanga-gray uppercase mb-2">Productos Incluidos</label>
+                        <div className="flex gap-2 mb-3">
+                          <select 
+                            id="prod_select"
+                            className="flex-1 px-3 py-2 bg-[#121212] border border-[#2a2a2c] rounded-lg text-white text-sm"
+                          >
+                            <option value="">Selecciona un producto...</option>
+                            {productos.map(p => (
+                              <option key={p.id_producto} value={p.id_producto}>{p.nombre}</option>
+                            ))}
+                          </select>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const sel = document.getElementById("prod_select") as HTMLSelectElement;
+                              const prodId = sel.value;
+                              if (!prodId) return;
+                              const prod = productos.find(p => p.id_producto === prodId);
+                              if (prod && !tarifaForm.productos_incluidos.find(p => p.id_producto === prodId)) {
+                                setTarifaForm({
+                                  ...tarifaForm, 
+                                  productos_incluidos: [...tarifaForm.productos_incluidos, { id_producto: prod.id_producto, nombre: prod.nombre, cantidad: 1 }]
+                                });
+                              }
+                            }}
+                            className="bg-zinc-800 hover:bg-zinc-700 text-white px-3 rounded-lg"
+                          >
+                            <Plus className="w-4 h-4" />
+                          </button>
+                        </div>
+                        {tarifaForm.productos_incluidos.length > 0 && (
+                          <div className="space-y-2">
+                            {tarifaForm.productos_incluidos.map((inc, i) => (
+                              <div key={inc.id_producto} className="flex items-center justify-between bg-[#121212] p-2 rounded-lg text-sm">
+                                <span className="text-white truncate pr-2">{inc.nombre}</span>
+                                <div className="flex items-center gap-3">
+                                  <input 
+                                    type="number" min="1" value={inc.cantidad}
+                                    onChange={(e) => {
+                                      const newInc = [...tarifaForm.productos_incluidos];
+                                      newInc[i].cantidad = parseInt(e.target.value) || 1;
+                                      setTarifaForm({...tarifaForm, productos_incluidos: newInc});
+                                    }}
+                                    className="w-14 bg-black border border-[#2a2a2c] rounded px-1 py-0.5 text-white text-center"
+                                  />
+                                  <button 
+                                    type="button" 
+                                    onClick={() => {
+                                      setTarifaForm({...tarifaForm, productos_incluidos: tarifaForm.productos_incluidos.filter(p => p.id_producto !== inc.id_producto)});
+                                    }}
+                                    className="text-red-400 hover:text-red-300"
+                                  ><X className="w-4 h-4"/></button>
+                                </div>
+                              </div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  )}
                 </div>
               </div>
               <div className="p-5 border-t border-[#2a2a2c] flex gap-3 justify-end bg-black/20">

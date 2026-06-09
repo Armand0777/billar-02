@@ -26,6 +26,14 @@ interface Tarifa {
   tipo_dia: string;
   horas_pagadas?: number;
   horas_regalo?: number;
+  descripcion?: string;
+  es_promocion?: boolean;
+  dias_semana?: number[];
+  fecha_inicio?: string;
+  fecha_fin?: string;
+  precio_fijo?: number;
+  personas?: number;
+  productos_incluidos?: any[];
 }
 
 interface SesionMesa {
@@ -545,6 +553,29 @@ export default function MesasPage() {
         });
       }
 
+      const tarifaAplicada = tarifas.find(t => t.id_tarifa === posSesion.id_tarifa);
+      const isPromo = tarifaAplicada?.es_promocion;
+      const promoProducts = isPromo && tarifaAplicada.productos_incluidos ? tarifaAplicada.productos_incluidos : [];
+
+      // Descontar productos de promo del inventario
+      if (promoProducts.length > 0) {
+        for (const prod of promoProducts) {
+          const { data: invData } = await supabase
+            .from("inventario")
+            .select("id_inventario, stock")
+            .eq("id_producto", prod.id_producto)
+            .eq("id_sucursal", activeSucursalId)
+            .single();
+          
+          if (invData) {
+            await supabase
+              .from("inventario")
+              .update({ stock: Math.max(0, invData.stock - (prod.cantidad || 1)) })
+              .eq("id_inventario", invData.id_inventario);
+          }
+        }
+      }
+
       // Preparar datos para imprimir el recibo
       const receiptData = {
         tipo: "mesa" as const,
@@ -553,17 +584,25 @@ export default function MesasPage() {
         tiempo: {
           horas: sessionDetails.timeString,
           costo: totalTiempo,
-          tarifaNombre: sessionDetails.tarifaNombre,
+          tarifaNombre: sessionDetails.tarifaNombre + (isPromo ? " (PROMO)" : ""),
           horaInicio: sessionDetails.horaInicio,
           precioPorHora: sessionDetails.precioHora,
           horasRegaloPromo: sessionDetails.horasRegaloPromo
         },
-        productos: (posVenta?.items || []).map(i => ({
-          nombre: i.producto?.nombre || "Producto",
-          cantidad: i.cantidad,
-          precio_unitario: i.precio_unitario,
-          subtotal: i.cantidad * i.precio_unitario
-        })),
+        productos: [
+          ...(posVenta?.items || []).map(i => ({
+            nombre: i.producto?.nombre || "Producto",
+            cantidad: i.cantidad,
+            precio_unitario: i.precio_unitario,
+            subtotal: i.cantidad * i.precio_unitario
+          })),
+          ...promoProducts.map(p => ({
+            nombre: `[PROMO] ${p.nombre}`,
+            cantidad: p.cantidad || 1,
+            precio_unitario: 0,
+            subtotal: 0
+          }))
+        ],
         totalGeneral: granTotal,
         metodoPago: metodoPago
       };
@@ -822,31 +861,102 @@ export default function MesasPage() {
                 </div>
               )}
 
-              {/* Selector de Tarifa (Oculto o bloqueado visualmente si es por partida, aunque el back requiera un ID) */}
-              <div className={`space-y-2 ${modalidad === 'partida' ? 'opacity-50 pointer-events-none' : ''}`}>
-                <label className="text-xs font-bold text-billanga-gray uppercase tracking-wider block">Seleccionar Tarifa de Juego</label>
-                <div className="grid grid-cols-1 gap-2 max-h-[160px] overflow-y-auto pr-2">
-                  {tarifas.map((t) => (
-                    <button
-                      key={t.id_tarifa}
-                      onClick={() => setSelectedTarifaId(t.id_tarifa)}
-                      className={`p-3 border rounded-xl text-left flex justify-between items-center transition-all ${
-                        selectedTarifaId === t.id_tarifa 
-                          ? "border-billanga-primary bg-billanga-primary/10 text-white" 
-                          : "border-[#2a2a2c] bg-black/20 text-billanga-gray hover:text-white"
-                      }`}
-                    >
-                      <div>
-                        <div className="font-bold text-sm text-white">{t.nombre}</div>
-                        <div className="text-xs text-billanga-gray capitalize">Días: {t.tipo_dia}</div>
-                      </div>
-                      <div className="text-right">
-                        <div className="font-extrabold text-white">Bs. {t.precio_hora.toFixed(2)}</div>
-                        <div className="text-[10px] text-billanga-gray">por hora</div>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+              {/* Selector de Tarifa con Promos Inteligentes */}
+              <div className={`space-y-4 ${modalidad === 'partida' ? 'opacity-50 pointer-events-none' : ''}`}>
+                <label className="text-xs font-bold text-white uppercase tracking-wider block border-b border-[#2a2a2c] pb-2">Tarifas y Promociones Disponibles</label>
+                
+                {(() => {
+                  const today = new Date().getDay(); // 0 = Domingo, 1 = Lunes...
+                  
+                  // Filtrar tarifas que aplican hoy (si no tiene dias_semana, aplica siempre)
+                  const tarifasValidas = tarifas.filter(t => {
+                    if (!t.dias_semana || t.dias_semana.length === 0) return true;
+                    return t.dias_semana.includes(today);
+                  });
+
+                  const tarifasNormales = tarifasValidas.filter(t => !t.es_promocion);
+                  const promociones = tarifasValidas.filter(t => t.es_promocion);
+
+                  return (
+                    <div className="space-y-4 max-h-[220px] overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-[#2a2a2c]">
+                      
+                      {promociones.length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-black text-green-400 uppercase tracking-widest block bg-green-500/10 w-fit px-2 py-0.5 rounded">⚡ Promos de Hoy</span>
+                          <div className="grid grid-cols-1 gap-2">
+                            {promociones.map(t => (
+                              <button
+                                key={t.id_tarifa}
+                                onClick={() => setSelectedTarifaId(t.id_tarifa)}
+                                className={`p-3 border-2 rounded-xl text-left transition-all relative overflow-hidden ${
+                                  selectedTarifaId === t.id_tarifa 
+                                    ? "border-green-500 bg-green-500/10" 
+                                    : "border-green-500/30 bg-black/40 hover:border-green-500/60"
+                                }`}
+                              >
+                                {selectedTarifaId === t.id_tarifa && <div className="absolute top-0 right-0 bg-green-500 text-black text-[10px] font-black px-2 py-0.5 rounded-bl-lg">SELECCIONADA</div>}
+                                <div className="flex justify-between items-start">
+                                  <div>
+                                    <div className="font-bold text-sm text-white flex items-center gap-1.5">
+                                      {t.nombre}
+                                    </div>
+                                    <div className="text-xs text-green-300/80 mt-0.5 font-medium">{t.descripcion}</div>
+                                    
+                                    {t.productos_incluidos && t.productos_incluidos.length > 0 && (
+                                      <div className="mt-2 flex flex-wrap gap-1">
+                                        {t.productos_incluidos.map((p: any) => (
+                                          <span key={p.id_producto} className="text-[9px] bg-white/10 text-white px-1.5 py-0.5 rounded flex items-center gap-1">
+                                            🍺 +{p.cantidad} {p.nombre}
+                                          </span>
+                                        ))}
+                                      </div>
+                                    )}
+                                  </div>
+                                  <div className="text-right shrink-0 ml-2">
+                                    <div className="font-extrabold text-white">
+                                      Bs. {t.precio_fijo ? Number(t.precio_fijo).toFixed(2) : Number(t.precio_hora).toFixed(2)}
+                                    </div>
+                                    <div className="text-[10px] text-billanga-gray">
+                                      {t.precio_fijo ? 'fijo' : 'por hora'}
+                                    </div>
+                                  </div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+
+                      {tarifasNormales.length > 0 && (
+                        <div className="space-y-2">
+                          <span className="text-[10px] font-bold text-billanga-gray uppercase tracking-widest block">Tarifas Regulares</span>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                            {tarifasNormales.map(t => (
+                              <button
+                                key={t.id_tarifa}
+                                onClick={() => setSelectedTarifaId(t.id_tarifa)}
+                                className={`p-2.5 border rounded-xl text-left flex justify-between items-center transition-all ${
+                                  selectedTarifaId === t.id_tarifa 
+                                    ? "border-billanga-primary bg-billanga-primary/10 text-white" 
+                                    : "border-[#2a2a2c] bg-black/20 text-billanga-gray hover:text-white hover:border-[#3a3a3c]"
+                                }`}
+                              >
+                                <div>
+                                  <div className="font-bold text-sm text-white">{t.nombre}</div>
+                                  <div className="text-[10px] text-billanga-gray capitalize">Días: {t.tipo_dia}</div>
+                                </div>
+                                <div className="text-right">
+                                  <div className="font-bold text-white">Bs. {Number(t.precio_hora).toFixed(2)}</div>
+                                </div>
+                              </button>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                      
+                    </div>
+                  );
+                })()}
               </div>
             </div>
             <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">

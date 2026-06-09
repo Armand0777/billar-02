@@ -138,7 +138,7 @@ export default function CajaPage() {
             .select(`
               *,
               venta_items ( cantidad, subtotal, productos (nombre) ),
-              sesiones_mesa ( total_tiempo, mesas (tipo) )
+              sesiones_mesa ( total_tiempo, mesas (tipo), tarifas (nombre, es_promocion) )
             `)
             .eq("id_sucursal", sucursalId)
             .eq("id_usuario", dbUser.id_usuario)
@@ -282,10 +282,14 @@ export default function CajaPage() {
         // En ventas, puede venir como array o como obj. Verificamos:
         const sesion = Array.isArray(v.sesiones_mesa) ? v.sesiones_mesa[0] : v.sesiones_mesa;
         if (sesion) {
-          const tipo = sesion.mesas?.tipo || "billar";
+          let label = sesion.mesas?.tipo || "billar";
+          if (sesion.tarifas?.es_promocion) {
+            label = `${sesion.tarifas.nombre}`;
+          }
+          
           const t = Number(sesion.total_tiempo || 0);
-          const curr = mesasMap.get(tipo) || { tiempo: 0, sub: 0 };
-          mesasMap.set(tipo, { tiempo: curr.tiempo + t, sub: curr.sub + subMesa });
+          const curr = mesasMap.get(label) || { tiempo: 0, sub: 0 };
+          mesasMap.set(label, { tiempo: curr.tiempo + t, sub: curr.sub + subMesa });
         }
       }
     });
