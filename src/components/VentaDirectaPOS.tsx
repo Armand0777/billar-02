@@ -124,14 +124,23 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
       const { data: userData } = await supabase.auth.getUser();
       if (!userData.user) throw new Error("No estás autenticado.");
       
-      const { data: userProfile } = await supabase.from("usuarios").select("id_usuario, id_sucursal, nombre").eq("auth_id", userData.user.id).single();
-      if (!userProfile) throw new Error("Perfil de usuario no encontrado.");
+      const { data: userProfile, error: profileError } = await supabase.from("usuarios").select("id_usuario, nombre, usuario_sucursal(id_sucursal)").eq("auth_id", userData.user.id).single();
+      if (profileError || !userProfile) {
+        console.error("Error perfil:", profileError);
+        throw new Error("Perfil de usuario no encontrado.");
+      }
+
+      const idSucursal = userProfile.usuario_sucursal && Array.isArray(userProfile.usuario_sucursal) && userProfile.usuario_sucursal.length > 0 
+        ? userProfile.usuario_sucursal[0].id_sucursal 
+        : null;
+        
+      if (!idSucursal) throw new Error("No tienes una sucursal asignada para realizar ventas.");
 
       // Insertar Venta
       const { data: newVenta, error: ventaError } = await supabase
         .from("ventas")
         .insert({
-          id_sucursal: userProfile.id_sucursal,
+          id_sucursal: idSucursal,
           id_usuario: userProfile.id_usuario,
           id_cliente: selectedCliente?.id_cliente || null,
           id_sesion: null, // Venta Directa
