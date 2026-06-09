@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react";
 import {
   Users, UserPlus, Edit3, Shield, RefreshCw, Search,
-  AlertTriangle, X, Check, Save, Mail
+  AlertTriangle, X, Check, Save, Mail, Trash2
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import ImageUploader from "@/components/ImageUploader";
@@ -44,7 +44,7 @@ export default function EmpleadosPage() {
   // Modal
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingEmpleado, setEditingEmpleado] = useState<Empleado | null>(null);
-  const [formData, setFormData] = useState({ nombre: "", email: "", id_rol: "", avatar_url: "", id_sucursal: "" });
+  const [formData, setFormData] = useState({ nombre: "", email: "", id_rol: "", avatar_url: "", id_sucursal: "", password: "" });
 
   const supabase = createClient();
 
@@ -85,13 +85,13 @@ export default function EmpleadosPage() {
 
   const handleOpenCreate = () => {
     setEditingEmpleado(null);
-    setFormData({ nombre: "", email: "", id_rol: roles[0]?.id_rol || "", avatar_url: "", id_sucursal: "" });
+    setFormData({ nombre: "", email: "", id_rol: roles[0]?.id_rol || "", avatar_url: "", id_sucursal: "", password: "" });
     setIsModalOpen(true);
   };
 
   const handleOpenEdit = (emp: Empleado) => {
     setEditingEmpleado(emp);
-    setFormData({ nombre: emp.nombre, email: emp.email, id_rol: emp.id_rol || "", avatar_url: emp.avatar_url || "", id_sucursal: emp.id_sucursal || "" });
+    setFormData({ nombre: emp.nombre, email: emp.email, id_rol: emp.id_rol || "", avatar_url: emp.avatar_url || "", id_sucursal: emp.id_sucursal || "", password: "" });
     setIsModalOpen(true);
   };
 
@@ -103,7 +103,7 @@ export default function EmpleadosPage() {
     try {
       let idUsuario = "";
       if (editingEmpleado) {
-        // Actualizar
+        // Actualizar sin tocar password ni email de Auth (por ahora solo perfil)
         const { error, data } = await supabase.from("usuarios").update({
           nombre: formData.nombre,
           email: formData.email,
@@ -112,39 +112,34 @@ export default function EmpleadosPage() {
         }).eq("id_usuario", editingEmpleado.id_usuario).select();
         if (error) throw error;
         idUsuario = editingEmpleado.id_usuario;
-      } else {
-        // Crear
-        const { data, error } = await supabase.from("usuarios").insert({
-          nombre: formData.nombre,
-          email: formData.email,
-          id_rol: formData.id_rol,
-          avatar_url: formData.avatar_url || null,
-          activo: true
-        }).select();
         
-        if (error) {
-          if (error.code === '23505') {
-            throw new Error("El correo electrónico ya está registrado para otro empleado.");
-          }
-          throw error;
-        }
-        if (!data || data.length === 0) {
-          throw new Error("No se pudo crear el empleado por restricciones de la base de datos.");
-        }
-        idUsuario = data[0].id_usuario;
-      }
-
-      if (idUsuario) {
-        if (formData.id_sucursal) {
-          const { data: usData } = await supabase.from("usuario_sucursal").select("id_usuario_sucursal").eq("id_usuario", idUsuario);
-          if (usData && usData.length > 0) {
-            await supabase.from("usuario_sucursal").update({ id_sucursal: formData.id_sucursal, id_rol: formData.id_rol }).eq("id_usuario", idUsuario);
+        if (idUsuario) {
+          if (formData.id_sucursal) {
+            const { data: usData } = await supabase.from("usuario_sucursal").select("id_usuario_sucursal").eq("id_usuario", idUsuario);
+            if (usData && usData.length > 0) {
+              await supabase.from("usuario_sucursal").update({ id_sucursal: formData.id_sucursal, id_rol: formData.id_rol }).eq("id_usuario", idUsuario);
+            } else {
+              await supabase.from("usuario_sucursal").insert({ id_usuario: idUsuario, id_sucursal: formData.id_sucursal, id_rol: formData.id_rol });
+            }
           } else {
-            await supabase.from("usuario_sucursal").insert({ id_usuario: idUsuario, id_sucursal: formData.id_sucursal, id_rol: formData.id_rol });
+            await supabase.from("usuario_sucursal").delete().eq("id_usuario", idUsuario);
           }
-        } else {
-          await supabase.from("usuario_sucursal").delete().eq("id_usuario", idUsuario);
         }
+      } else {
+        // Crear usando nuestra nueva API Segura
+        if (!formData.password) {
+          alert("Debe asignar una contraseña para el nuevo empleado");
+          return;
+        }
+
+        const res = await fetch("/api/admin/users", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(formData)
+        });
+
+        const json = await res.json();
+        if (!res.ok) throw new Error(json.error || "Error al crear el usuario");
       }
 
       setIsModalOpen(false);
@@ -160,6 +155,18 @@ export default function EmpleadosPage() {
       await supabase.from("usuarios").update({ activo: !emp.activo }).eq("id_usuario", emp.id_usuario);
       loadData();
     } catch (err: any) { alert("Error: " + err.message); }
+  };
+
+  const handleDelete = async (emp: Empleado) => {
+    if (!confirm(`¿Estás seguro de que quieres eliminar a ${emp.nombre}? Esto le quitará el acceso al sistema inmediatamente.`)) return;
+    try {
+      const res = await fetch(`/api/admin/users?id=${emp.id_usuario}`, { method: "DELETE" });
+      const json = await res.json();
+      if (!res.ok) throw new Error(json.error || "Error al eliminar");
+      loadData();
+    } catch (err: any) {
+      alert("Error: " + err.message);
+    }
   };
 
   const filtered = empleados.filter(e => {
@@ -245,6 +252,7 @@ export default function EmpleadosPage() {
                   <td className="py-3 text-xs text-billanga-gray">{new Date(emp.created_at).toLocaleDateString("es-BO")}</td>
                   <td className="py-3 pr-6 text-center">
                     <button onClick={() => handleOpenEdit(emp)} className="px-3 py-1.5 bg-[#2a2a2c] hover:bg-billanga-primary hover:text-white rounded-lg text-xs font-bold transition-all text-billanga-gray inline-flex items-center gap-1"><Edit3 className="w-3 h-3" /> Editar</button>
+                    <button onClick={() => handleDelete(emp)} className="px-3 py-1.5 bg-[#2a2a2c] hover:bg-red-500 hover:text-white rounded-lg text-xs font-bold transition-all text-billanga-gray inline-flex items-center gap-1 ml-2"><Trash2 className="w-3 h-3" /> Eliminar</button>
                   </td>
                 </tr>
               )) : (
@@ -264,7 +272,7 @@ export default function EmpleadosPage() {
               {!editingEmpleado && (
                 <div className="bg-blue-500/10 border border-blue-500/30 p-3 rounded-xl text-xs text-blue-400 flex gap-2">
                   <AlertTriangle className="w-4 h-4 shrink-0" />
-                  <p>Al crear el empleado aquí, solo se le asigna un perfil. El usuario deberá crear su cuenta con la misma dirección de email para vincularse automáticamente.</p>
+                  <p>Al crear este empleado, se generará su cuenta automáticamente con la contraseña que elijas a continuación. ¡Podrá iniciar sesión inmediatamente!</p>
                 </div>
               )}
               <div>
@@ -279,6 +287,10 @@ export default function EmpleadosPage() {
               </div>
               <div><label className="text-sm font-medium text-billanga-gray block mb-1">Nombre Completo *</label><input type="text" value={formData.nombre} onChange={e => setFormData({ ...formData, nombre: e.target.value })} placeholder="Ej: Juan Pérez" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
               <div><label className="text-sm font-medium text-billanga-gray block mb-1">Email *</label><input type="email" value={formData.email} onChange={e => setFormData({ ...formData, email: e.target.value })} placeholder="juan@ejemplo.com" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
+              
+              {!editingEmpleado && (
+                <div><label className="text-sm font-medium text-billanga-gray block mb-1">Contraseña *</label><input type="text" value={formData.password} onChange={e => setFormData({ ...formData, password: e.target.value })} placeholder="Contraseña para ingresar" className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary" /></div>
+              )}
               <div>
                 <label className="text-sm font-medium text-billanga-gray block mb-1">Rol *</label>
                 <select value={formData.id_rol} onChange={e => setFormData({ ...formData, id_rol: e.target.value })} className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary capitalize">
