@@ -142,7 +142,7 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
         .insert({
           id_sucursal: idSucursal,
           id_usuario: userProfile.id_usuario,
-          id_cliente: selectedCliente?.id_cliente || null,
+          id_cliente: (selectedCliente?.id_cliente && selectedCliente.id_cliente !== 'anon') ? selectedCliente.id_cliente : null,
           id_sesion: null, // Venta Directa
           total: totalCart,
           metodo_pago: metodoPago,
