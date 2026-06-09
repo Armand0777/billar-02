@@ -29,8 +29,12 @@ export async function POST(req: Request) {
     });
 
     if (authError) {
-      if (authError.message.includes("already registered")) {
-        return NextResponse.json({ error: "El correo ya está registrado en el sistema." }, { status: 400 });
+      if (
+        authError.message.includes("already registered") || 
+        authError.message.includes("already been registered") ||
+        authError.message.includes("already exists")
+      ) {
+        return NextResponse.json({ error: "El correo ya está registrado en el sistema. Por favor, inicia sesión." }, { status: 400 });
       }
       return NextResponse.json({ error: authError.message }, { status: 400 });
     }
