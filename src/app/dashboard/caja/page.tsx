@@ -54,10 +54,13 @@ export default function CajaPage() {
     setDbError("");
     try {
       const { data: { user } } = await supabase.auth.getUser();
+      let dbUser: any = null;
       if (user) {
-        const { data: dbUser } = await supabase.from("usuarios").select("id_usuario, nombre").eq("auth_id", user.id).single();
-        setCurrentUser(dbUser || { id_usuario: user.id, nombre: user.email?.split("@")[0] || "Admin" });
+        const { data } = await supabase.from("usuarios").select("id_usuario, nombre").eq("auth_id", user.id).single();
+        dbUser = data || { id_usuario: user.id, nombre: user.email?.split("@")[0] || "Admin" };
+        setCurrentUser(dbUser);
       }
+      if (!dbUser) { setLoading(false); return; }
 
       const { data: sucursales } = await supabase.from("sucursales").select("id_sucursal, nombre");
       const sucursal = sucursales?.[0];
@@ -77,11 +80,12 @@ export default function CajaPage() {
       if (caja) {
         const hoy = new Date().toISOString().slice(0, 10);
         
-        // Verificar si hay un arqueo de apertura sin cierre correspondiente
+        // Verificar si ESTE CAJERO tiene un arqueo de apertura sin cierre
         const { data: lastArqueo } = await supabase
           .from("arqueos")
           .select("*")
           .eq("id_caja", caja.id_caja)
+          .eq("id_usuario", dbUser.id_usuario)
           .eq("tipo", "apertura")
           .order("created_at", { ascending: false })
           .limit(1)
@@ -91,11 +95,12 @@ export default function CajaPage() {
         let isAbierta = false;
 
         if (lastArqueo) {
-          // Buscar si hay un cierre posterior
+          // Buscar si hay un cierre posterior de ESTE CAJERO
           const { data: cierrePost } = await supabase
             .from("arqueos")
             .select("*")
             .eq("id_caja", caja.id_caja)
+            .eq("id_usuario", dbUser.id_usuario)
             .eq("tipo", "cierre")
             .gt("created_at", lastArqueo.created_at)
             .limit(1)
@@ -121,6 +126,7 @@ export default function CajaPage() {
             .from("movimientos_caja")
             .select("*")
             .eq("id_caja", caja.id_caja)
+            .eq("id_usuario", dbUser.id_usuario)
             .gte("created_at", aperturaTime)
             .order("created_at", { ascending: false });
 
@@ -135,6 +141,7 @@ export default function CajaPage() {
               sesiones_mesa ( total_tiempo, mesas (tipo) )
             `)
             .eq("id_sucursal", sucursalId)
+            .eq("id_usuario", dbUser.id_usuario)
             .eq("estado", "completada")
             .gte("created_at", aperturaTime);
             
