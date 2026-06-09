@@ -339,20 +339,21 @@ export default function CajaPage() {
       
       {/* Modal de Ticket Z (sobre todo) */}
       {ticketData && (
-        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex flex-col items-center justify-center p-4 print:bg-white print:p-0">
+        <div className="fixed inset-0 bg-black/90 backdrop-blur-sm z-[100] flex flex-col items-center overflow-y-auto p-4 print:bg-white print:p-0">
           <button 
             onClick={() => setTicketData(null)}
-            className="absolute top-6 right-6 p-2 bg-[#2a2a2c] hover:bg-red-500/20 text-white hover:text-red-400 rounded-full transition-all print:hidden"
+            className="absolute top-4 right-4 p-2 bg-[#2a2a2c] hover:bg-red-500/20 text-white hover:text-red-400 rounded-full transition-all print:hidden z-10"
           >
-            <X className="w-6 h-6" />
+            <X className="w-5 h-5" />
           </button>
           
-          <div className="text-center mb-6 print:hidden">
-            <h2 className="text-2xl font-bold text-white mb-2">Turno Cerrado Exitosamente</h2>
-            <p className="text-billanga-gray">Aquí tienes el ticket de cierre Z. Puedes imprimirlo ahora.</p>
+          <div className="text-center mt-2 mb-3 print:hidden shrink-0">
+            <h2 className="text-lg font-bold text-white mb-1">Turno Cerrado Exitosamente</h2>
+            <p className="text-billanga-gray text-sm">Aquí tienes el ticket de cierre Z.</p>
           </div>
 
           <TicketCierre data={ticketData} ref={ticketRef} />
+          <div className="h-4 shrink-0" />
         </div>
       )}
 
