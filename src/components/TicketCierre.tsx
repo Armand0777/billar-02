@@ -47,7 +47,7 @@ const TicketCierre = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
   };
 
   return (
-    <div className="flex flex-col items-center w-full max-w-[80mm] mx-auto">
+    <div className="flex flex-col items-center w-full max-w-[58mm] mx-auto">
       {/* Botón Imprimir - siempre visible arriba */}
       <button
         onClick={handlePrint}
@@ -58,7 +58,7 @@ const TicketCierre = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
       {/* Ticket visual */}
       <div className="bg-white text-black rounded-lg w-full shadow-2xl overflow-hidden">
-        <div ref={ref} className="ticket-content font-mono px-3 py-2" style={{ fontSize: '10px', lineHeight: '1.3' }}>
+        <div ref={ref} className="ticket-content font-mono px-2 py-2" style={{ fontSize: '9px', lineHeight: '1.1' }}>
           <style dangerouslySetInnerHTML={{__html: `
             @media print {
               body * { visibility: hidden; }
@@ -67,19 +67,19 @@ const TicketCierre = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
                 position: absolute; 
                 left: 0; 
                 top: 0; 
-                width: 80mm; 
-                padding: 2mm;
+                width: 58mm; 
+                padding: 0;
                 margin: 0;
-                font-size: 10px;
-                line-height: 1.3;
+                font-size: 9px;
+                line-height: 1.1;
               }
             }
           `}} />
 
           {/* Encabezado */}
-          <div className="text-center" style={{ marginBottom: '4px' }}>
-            <p style={{ fontSize: '14px', fontWeight: 'bold' }}>EL BILLANGA</p>
-            <p style={{ fontSize: '10px' }}>{data.sucursalNombre}</p>
+          <div className="text-center" style={{ marginBottom: '2px' }}>
+            <p style={{ fontSize: '12px', fontWeight: 'bold' }}>EL BILLANGA</p>
+            <p style={{ fontSize: '9px' }}>{data.sucursalNombre}</p>
             <p>{SEP}</p>
             <p style={{ fontWeight: 'bold' }}>CIERRE DE CAJA</p>
             <p>{SEP}</p>
@@ -96,21 +96,21 @@ const TicketCierre = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
           {/* Desglose Mesas */}
           {data.desgloseMesas.length > 0 && (
-            <div style={{ marginBottom: '2px' }}>
-              <p style={{ fontWeight: 'bold' }}>MESAS (BILLAR)</p>
+            <div style={{ marginBottom: '1px' }}>
+              <p style={{ fontWeight: 'bold' }}>MESAS</p>
               <div className="flex justify-between" style={{ fontWeight: 'bold', borderBottom: '1px dashed #999', paddingBottom: '1px', marginBottom: '1px' }}>
-                <span>Tipo</span>
-                <span>Hs.</span>
-                <span>Total</span>
+                <span className="flex-1">Tipo</span>
+                <span className="w-8 text-center">Hs.</span>
+                <span className="w-12 text-right">Tot</span>
               </div>
               {data.desgloseMesas.map((m, i) => (
                 <div key={i} className="flex justify-between">
-                  <span className="capitalize" style={{ width: '45%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.tipo}</span>
-                  <span style={{ width: '25%', textAlign: 'right' }}>{m.tiempoTotal}</span>
-                  <span style={{ width: '30%', textAlign: 'right' }}>{m.subtotal.toFixed(2)}</span>
+                  <span className="capitalize flex-1 truncate pr-1">{m.tipo}</span>
+                  <span className="w-8 text-center">{m.tiempoTotal}</span>
+                  <span className="w-12 text-right">{m.subtotal.toFixed(2)}</span>
                 </div>
               ))}
-              <p style={{ textAlign: 'right', fontWeight: 'bold' }}>Sub: Bs.{data.totalVentasMesas.toFixed(2)}</p>
+              <p style={{ textAlign: 'right', fontWeight: 'bold' }}>Sub: {data.totalVentasMesas.toFixed(2)}</p>
             </div>
           )}
 
@@ -118,68 +118,67 @@ const TicketCierre = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
 
           {/* Desglose Productos */}
           {data.desgloseProductos.length > 0 && (
-            <div style={{ marginBottom: '2px' }}>
+            <div style={{ marginBottom: '1px' }}>
               <p style={{ fontWeight: 'bold' }}>PRODUCTOS</p>
               <div className="flex justify-between" style={{ fontWeight: 'bold', borderBottom: '1px dashed #999', paddingBottom: '1px', marginBottom: '1px' }}>
-                <span style={{ width: '55%' }}>Producto</span>
-                <span style={{ width: '15%', textAlign: 'right' }}>Cnt</span>
-                <span style={{ width: '30%', textAlign: 'right' }}>Total</span>
+                <span className="flex-1">Prod</span>
+                <span className="w-6 text-center">Ct</span>
+                <span className="w-12 text-right">Tot</span>
               </div>
               {data.desgloseProductos.map((p, i) => (
                 <div key={i} className="flex justify-between">
-                  <span style={{ width: '55%', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.nombre}</span>
-                  <span style={{ width: '15%', textAlign: 'right' }}>{p.cantidad}</span>
-                  <span style={{ width: '30%', textAlign: 'right' }}>{(p.subtotal || 0).toFixed(2)}</span>
+                  <span className="flex-1 truncate pr-1">{p.nombre}</span>
+                  <span className="w-6 text-center">{p.cantidad}</span>
+                  <span className="w-12 text-right">{(p.subtotal || 0).toFixed(2)}</span>
                 </div>
               ))}
-              <p style={{ textAlign: 'right', fontWeight: 'bold' }}>Sub: Bs.{data.totalVentasProductos.toFixed(2)}</p>
+              <p style={{ textAlign: 'right', fontWeight: 'bold' }}>Sub: {data.totalVentasProductos.toFixed(2)}</p>
             </div>
           )}
 
           <p>{SEP}</p>
 
           {/* Resumen Caja */}
-          <div style={{ marginBottom: '2px' }}>
+          <div style={{ marginBottom: '1px' }}>
             <p style={{ fontWeight: 'bold' }}>RESUMEN</p>
-            <div className="flex justify-between"><span>Monto Inicial:</span><span>Bs.{data.montoInicial.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>+ Ventas:</span><span>Bs.{(data.totalVentasMesas + data.totalVentasProductos).toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>+ Ingresos:</span><span>Bs.{data.totalIngresosAdicionales.toFixed(2)}</span></div>
-            <div className="flex justify-between" style={{ color: '#dc2626' }}><span>- Egresos:</span><span>Bs.{data.totalEgresos.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>Monto Ini:</span><span>{data.montoInicial.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>+ Ventas:</span><span>{(data.totalVentasMesas + data.totalVentasProductos).toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>+ Ingresos:</span><span>{data.totalIngresosAdicionales.toFixed(2)}</span></div>
+            <div className="flex justify-between" style={{ color: '#dc2626' }}><span>- Egresos:</span><span>{data.totalEgresos.toFixed(2)}</span></div>
             <div className="flex justify-between" style={{ fontWeight: 'bold', borderTop: '1px solid #333', paddingTop: '1px', marginTop: '1px' }}>
-              <span>SALDO ESPERADO:</span><span>Bs.{data.saldoEstimado.toFixed(2)}</span>
+              <span>SALDO ESPERADO:</span><span>{data.saldoEstimado.toFixed(2)}</span>
             </div>
           </div>
 
           <p>{SEP}</p>
 
           {/* Formas de Pago */}
-          <div style={{ marginBottom: '2px' }}>
-            <p style={{ fontWeight: 'bold' }}>FORMAS DE PAGO</p>
-            <div className="flex justify-between"><span>Efectivo:</span><span>Bs.{data.metodosPago.efectivo.toFixed(2)}</span></div>
-            <div className="flex justify-between"><span>QR/Transf.:</span><span>Bs.{data.metodosPago.qr.toFixed(2)}</span></div>
+          <div style={{ marginBottom: '1px' }}>
+            <p style={{ fontWeight: 'bold' }}>PAGOS</p>
+            <div className="flex justify-between"><span>Efectivo:</span><span>{data.metodosPago.efectivo.toFixed(2)}</span></div>
+            <div className="flex justify-between"><span>QR/Transf:</span><span>{data.metodosPago.qr.toFixed(2)}</span></div>
           </div>
 
           <p>================================</p>
 
           {/* Arqueo Real */}
-          <div style={{ marginBottom: '2px' }}>
+          <div style={{ marginBottom: '1px' }}>
             <div className="flex justify-between" style={{ fontWeight: 'bold' }}>
-              <span>CIERRE REAL:</span><span>Bs.{data.montoCierreReal.toFixed(2)}</span>
+              <span>CIERRE REAL:</span><span>{data.montoCierreReal.toFixed(2)}</span>
             </div>
             <div className="flex justify-between" style={{ fontWeight: 'bold' }}>
-              <span>DIFERENCIA:</span><span>Bs.{data.diferencia.toFixed(2)}</span>
+              <span>DIFERENCIA:</span><span>{data.diferencia.toFixed(2)}</span>
             </div>
             {data.observacion && (
-              <div style={{ marginTop: '2px', fontSize: '9px' }}>
+              <div style={{ marginTop: '1px', fontSize: '8px' }}>
                 <p><strong>Obs:</strong> {data.observacion}</p>
               </div>
             )}
           </div>
 
           {/* Footer */}
-          <div className="text-center" style={{ marginTop: '4px', paddingTop: '2px', borderTop: '1px dashed #999' }}>
+          <div className="text-center" style={{ marginTop: '2px', paddingTop: '1px', borderTop: '1px dashed #999' }}>
             <p>*** FIN ***</p>
-            <p style={{ fontSize: '8px', color: '#888' }}>Sistema El Billanga</p>
           </div>
         </div>
       </div>
