@@ -24,9 +24,22 @@ export default async function DashboardPage() {
   let errorMessage = "";
 
   try {
-    const inicioDia = new Date();
-    inicioDia.setHours(0, 0, 0, 0);
-    const inicioDiaISO = inicioDia.toISOString();
+    // Calcular inicio de día (00:00:00) estrictamente en la zona horaria de Bolivia (UTC-4)
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat('en-US', {
+      timeZone: 'America/La_Paz',
+      year: 'numeric',
+      month: '2-digit',
+      day: '2-digit',
+    });
+    
+    const parts = formatter.formatToParts(now);
+    const month = parts.find(p => p.type === 'month')?.value;
+    const day = parts.find(p => p.type === 'day')?.value;
+    const year = parts.find(p => p.type === 'year')?.value;
+    
+    // Las 00:00:00 en Bolivia (UTC-4) corresponden a las 04:00:00 en UTC
+    const inicioDiaISO = `${year}-${month}-${day}T04:00:00.000Z`;
 
     // 1. Obtener ventas del día
     const { data: ventasHoy, error: ventasError } = await supabase
