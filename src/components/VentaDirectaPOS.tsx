@@ -46,6 +46,7 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
   const [clientes, setClientes] = useState<Cliente[]>([]);
   
   const [activeCategory, setActiveCategory] = useState<string>('all');
+  const [searchProductoQuery, setSearchProductoQuery] = useState("");
   const [cart, setCart] = useState<CartItem[]>([]);
   
   // Cliente
@@ -77,7 +78,10 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
     fetchData();
   }, []);
 
-  const filteredProducts = productos.filter(p => activeCategory === 'all' || p.id_categoria === activeCategory);
+  const filteredProducts = productos.filter(p => 
+    (activeCategory === 'all' || p.id_categoria === activeCategory) &&
+    p.nombre.toLowerCase().includes(searchProductoQuery.toLowerCase())
+  );
 
   const handleAddProduct = (prod: Producto) => {
     setCart(prev => {
@@ -322,12 +326,28 @@ export default function VentaDirectaPOS({ onClose, onSuccess }: VentaDirectaPOSP
           </div>
 
           {/* DERECHA: Catálogo POS */}
-          <div className="flex-1 h-[45vh] md:h-full flex flex-col bg-[#141416]">
-            <div className="p-3 sm:p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] overflow-x-auto flex gap-2 shrink-0 scrollbar-hide">
-              <button onClick={() => setActiveCategory('all')} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === 'all' ? 'bg-white text-black' : 'bg-[#2a2a2c] text-billanga-gray hover:text-white'}`}>Todos</button>
-              {categorias.map(cat => <button key={cat.id_categoria} onClick={() => setActiveCategory(cat.id_categoria)} className={`px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id_categoria ? 'bg-white text-black' : 'bg-[#2a2a2c] text-billanga-gray hover:text-white'}`}>{cat.nombre}</button>)}
+          <div className="flex-1 min-w-0 h-[45vh] md:h-full flex flex-col bg-[#141416]">
+            
+            {/* Buscador de productos */}
+            <div className="p-3 sm:p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] shrink-0">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-billanga-gray/50" />
+                <input 
+                  type="text" 
+                  placeholder="Buscar producto..." 
+                  value={searchProductoQuery}
+                  onChange={e => setSearchProductoQuery(e.target.value)}
+                  className="bg-[#141416] border border-[#2a2a2c] rounded-lg py-2 pl-9 pr-3 text-sm text-white w-full focus:outline-none focus:border-billanga-primary transition-colors"
+                />
+              </div>
             </div>
-            <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 content-start">
+
+            <div className="p-3 sm:p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] overflow-x-auto flex gap-2 shrink-0 scrollbar-thin scrollbar-thumb-[#2a2a2c]">
+              <button onClick={() => setActiveCategory('all')} className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === 'all' ? 'bg-white text-black' : 'bg-[#2a2a2c] text-billanga-gray hover:text-white'}`}>Todos</button>
+              {categorias.map(cat => <button key={cat.id_categoria} onClick={() => setActiveCategory(cat.id_categoria)} className={`shrink-0 px-5 py-2.5 rounded-xl text-sm font-bold whitespace-nowrap transition-all ${activeCategory === cat.id_categoria ? 'bg-white text-black' : 'bg-[#2a2a2c] text-billanga-gray hover:text-white'}`}>{cat.nombre}</button>)}
+            </div>
+            
+            <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 content-start scrollbar-thin scrollbar-thumb-[#2a2a2c]">
               {filteredProducts.map(prod => (
                 <button key={prod.id_producto} onClick={() => handleAddProduct(prod)} className="bg-[#1a1a1c] border border-[#2a2a2c] hover:border-billanga-primary/50 hover:shadow-[0_0_15px_rgba(0,230,118,0.15)] rounded-2xl p-4 flex flex-col items-center justify-between aspect-square transition-all active:scale-95 group">
                   <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mb-3 group-hover:bg-billanga-primary/20 transition-colors">
