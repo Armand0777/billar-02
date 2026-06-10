@@ -398,14 +398,14 @@ export default function ConfiguracionPage() {
         {/* Modal de Tarifa */}
         {isTarifaModalOpen && (
           <div className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-            <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl w-full max-w-md overflow-hidden animate-in zoom-in-95 duration-200">
-              <div className="p-5 border-b border-[#2a2a2c] flex items-center justify-between">
+            <div className="bg-[#1a1a1c] border border-[#2a2a2c] rounded-2xl w-full max-w-md max-h-[90vh] flex flex-col overflow-hidden animate-in zoom-in-95 duration-200">
+              <div className="p-5 border-b border-[#2a2a2c] flex items-center justify-between shrink-0">
                 <h3 className="text-xl font-bold text-white">{editingTarifa ? 'Editar Tarifa' : 'Nueva Tarifa'}</h3>
                 <button type="button" onClick={() => setIsTarifaModalOpen(false)} className="text-zinc-400 hover:text-white transition-colors">
                   <X className="w-6 h-6" />
                 </button>
               </div>
-              <div className="p-6 space-y-4">
+              <div className="p-6 space-y-4 overflow-y-auto">
                 <div>
                   <label className="block text-xs font-bold text-billanga-gray uppercase mb-2">Nombre de Tarifa</label>
                   <input type="text" value={tarifaForm.nombre} onChange={e => setTarifaForm({...tarifaForm, nombre: e.target.value})} className="w-full px-4 py-3 bg-[#121212] border border-[#2a2a2c] rounded-xl text-white text-sm focus:border-billanga-primary focus:outline-none" placeholder="Ej: Tarifa Normal" autoFocus required />
@@ -555,7 +555,7 @@ export default function ConfiguracionPage() {
                   )}
                 </div>
               </div>
-              <div className="p-5 border-t border-[#2a2a2c] flex gap-3 justify-end bg-black/20">
+              <div className="p-5 border-t border-[#2a2a2c] flex gap-3 justify-end bg-black/20 shrink-0">
                 <button type="button" onClick={() => setIsTarifaModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors">Cancelar</button>
                 <button type="button" onClick={handleSaveTarifa} className="px-5 py-2.5 rounded-xl font-bold bg-billanga-primary text-white hover:bg-[#b81d24] transition-colors shadow-lg shadow-billanga-primary/20">
                   {editingTarifa ? 'Guardar Cambios' : 'Crear Tarifa'}
