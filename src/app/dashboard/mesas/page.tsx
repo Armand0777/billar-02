@@ -1078,7 +1078,7 @@ export default function MesasPage() {
             </div>
 
             {/* DERECHA: Catálogo POS */}
-            <div className="flex-1 h-[45vh] md:h-full flex flex-col bg-[#141416]">
+            <div className="flex-1 min-w-0 h-[45vh] md:h-full flex flex-col bg-[#141416]">
             {/* Buscador de productos */}
             <div className="p-3 sm:p-4 border-b border-[#2a2a2c] bg-[#1a1a1c] shrink-0">
               <div className="relative">
