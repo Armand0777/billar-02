@@ -24,6 +24,13 @@ export default async function DashboardPage() {
   let errorMessage = "";
 
   try {
+    const { data: { user } } = await supabase.auth.getUser();
+    let dbUser: any = null;
+    if (user) {
+      const { data } = await supabase.from("usuarios").select("*").eq("auth_id", user.id).single();
+      dbUser = data;
+    }
+
     // Calcular inicio de día (00:00:00) estrictamente en la zona horaria de Bolivia (UTC-4)
     const now = new Date();
     const formatter = new Intl.DateTimeFormat('en-US', {
@@ -39,13 +46,42 @@ export default async function DashboardPage() {
     const year = parts.find(p => p.type === 'year')?.value;
     
     // Las 00:00:00 en Bolivia (UTC-4) corresponden a las 04:00:00 en UTC
-    const inicioDiaISO = `${year}-${month}-${day}T04:00:00.000Z`;
+    let inicioFiltroISO = `${year}-${month}-${day}T04:00:00.000Z`;
+    let userIdFiltro = null;
+    let isCajaCerradaCajero = false;
 
-    // 1. Obtener ventas del día
-    const { data: ventasHoy, error: ventasError } = await supabase
+    // Si es cajero, verificar su caja actual
+    if (dbUser && dbUser.rol === 'cajero') {
+      userIdFiltro = dbUser.id_usuario;
+      
+      const { data: lastArqueo } = await supabase
+        .from("arqueos")
+        .select("tipo, created_at")
+        .eq("id_usuario", dbUser.id_usuario)
+        .order("created_at", { ascending: false })
+        .limit(1)
+        .maybeSingle();
+
+      if (lastArqueo && lastArqueo.tipo === 'apertura') {
+        inicioFiltroISO = lastArqueo.created_at; // Mostrar desde que abrió su caja
+      } else {
+        isCajaCerradaCajero = true; // No tiene caja abierta, mostrar en 0
+      }
+    }
+
+    // 1. Obtener ventas del día (o del turno del cajero)
+    let ventasQuery = supabase
       .from("ventas")
       .select("total, metodo_pago, estado")
-      .gte("created_at", inicioDiaISO);
+      .gte("created_at", inicioFiltroISO);
+
+    if (userIdFiltro) {
+      ventasQuery = ventasQuery.eq("id_usuario", userIdFiltro);
+    }
+
+    const { data: ventasHoy, error: ventasError } = isCajaCerradaCajero 
+      ? { data: [], error: null } 
+      : await ventasQuery;
 
     if (ventasError) throw ventasError;
 
@@ -88,37 +124,54 @@ export default async function DashboardPage() {
     }
 
     // 4. Últimas 5 ventas con relaciones a usuario (cajero) y cliente
-    // Intentamos traer relaciones. Si da error de relación por falta de RLS o vistas, capturamos
-    const { data: vList, error: vListError } = await supabase
-      .from("ventas")
-      .select(`
-        id_venta,
-        created_at,
-        total,
-        metodo_pago,
-        estado,
-        usuarios:id_usuario (nombre),
-        clientes:id_cliente (nombre)
-      `)
-      .order("created_at", { ascending: false })
-      .limit(5);
-
-    if (!vListError && vList) {
-      ultimasVentas = vList;
+    if (isCajaCerradaCajero) {
+      ultimasVentas = [];
     } else {
-      // Fallback si la relación falla o no hay datos
-      const { data: vListFallback } = await supabase
+      let vListQuery = supabase
         .from("ventas")
-        .select("id_venta, created_at, total, metodo_pago, estado")
+        .select(`
+          id_venta,
+          created_at,
+          total,
+          metodo_pago,
+          estado,
+          usuarios:id_usuario (nombre),
+          clientes:id_cliente (nombre)
+        `)
+        .gte("created_at", inicioFiltroISO)
         .order("created_at", { ascending: false })
         .limit(5);
-      
-      if (vListFallback) {
-        ultimasVentas = vListFallback.map(v => ({
-          ...v,
-          usuarios: { nombre: "Sistema" },
-          clientes: { nombre: "Cliente General" }
-        }));
+
+      if (userIdFiltro) {
+        vListQuery = vListQuery.eq("id_usuario", userIdFiltro);
+      }
+
+      const { data: vList, error: vListError } = await vListQuery;
+
+      if (!vListError && vList) {
+        ultimasVentas = vList;
+      } else {
+        // Fallback si la relación falla o no hay datos
+        let vListFallbackQuery = supabase
+          .from("ventas")
+          .select("id_venta, created_at, total, metodo_pago, estado")
+          .gte("created_at", inicioFiltroISO)
+          .order("created_at", { ascending: false })
+          .limit(5);
+
+        if (userIdFiltro) {
+          vListFallbackQuery = vListFallbackQuery.eq("id_usuario", userIdFiltro);
+        }
+
+        const { data: vListFallback } = await vListFallbackQuery;
+        
+        if (vListFallback) {
+          ultimasVentas = vListFallback.map(v => ({
+            ...v,
+            usuarios: { nombre: "Sistema" },
+            clientes: { nombre: "Cliente General" }
+          }));
+        }
       }
     }
 

@@ -486,7 +486,7 @@ export default function MesasPage() {
       timeString = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       
       const costoFijo = ((sesion.tiempo_fijo_minutos || 60) / 60) * precioHora;
-      accumulatedValue = costoFijo.toFixed(2);
+      accumulatedValue = Math.round(costoFijo).toFixed(2);
     } else {
       const hrs = Math.floor(diffSecs / 3600);
       const mins = Math.floor((diffSecs % 3600) / 60);
@@ -502,7 +502,7 @@ export default function MesasPage() {
         horasACobrar = horasCompletas - horasRegaloPromo;
       }
       
-      accumulatedValue = (horasACobrar * precioHora).toFixed(2);
+      accumulatedValue = Math.round(horasACobrar * precioHora).toFixed(2);
     }
 
     return {
@@ -756,7 +756,13 @@ export default function MesasPage() {
                            {isTimeUp ? "¡TIEMPO!" : timeString}
                          </span>
                       </div>
-                      <div className="text-white/60 text-[8px] sm:text-[10px] uppercase font-bold tracking-wider mb-0.5 truncate w-full">{tarifaNombre}</div>
+                      
+                      <div className="flex items-center justify-center gap-1 text-[8px] sm:text-[10px] text-white/60 font-bold mb-0.5 bg-black/30 px-2 py-0.5 rounded-full">
+                        <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
+                        Inició: {new Date(sesion.inicio).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                      </div>
+
+                      <div className="text-white/50 text-[8px] sm:text-[9px] uppercase tracking-wider mb-0.5 truncate w-full">{tarifaNombre}</div>
                       <div className="text-white font-black text-base sm:text-xl drop-shadow-md">
                         Bs. {accumulatedValue}
                       </div>

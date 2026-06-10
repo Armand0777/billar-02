@@ -20,6 +20,7 @@ export interface TicketCierreData {
   desgloseProductos: {
     nombre: string;
     cantidad: number;
+    precioUnitario?: number;
     subtotal: number;
   }[];
   desgloseMesas: {
@@ -121,15 +122,13 @@ const TicketCierre = forwardRef<HTMLDivElement, Props>(({ data }, ref) => {
             <div style={{ marginBottom: '1px' }}>
               <p style={{ fontWeight: 'bold' }}>PRODUCTOS</p>
               <div className="flex justify-between" style={{ fontWeight: 'bold', borderBottom: '1px dashed #999', paddingBottom: '1px', marginBottom: '1px' }}>
-                <span className="flex-1">Prod</span>
-                <span className="w-6 text-center">Ct</span>
+                <span className="flex-1">Cant x Prod (P.U)</span>
                 <span className="w-12 text-right">Tot</span>
               </div>
               {data.desgloseProductos.map((p, i) => (
-                <div key={i} className="flex justify-between">
-                  <span className="flex-1 truncate pr-1">{p.nombre}</span>
-                  <span className="w-6 text-center">{p.cantidad}</span>
-                  <span className="w-12 text-right">{(p.subtotal || 0).toFixed(2)}</span>
+                <div key={i} className="flex justify-between" style={{ lineHeight: '1.2' }}>
+                  <span className="flex-1 pr-1">{p.cantidad}x {p.nombre} ({p.precioUnitario?.toFixed(2) || '-'})</span>
+                  <span className="w-12 text-right shrink-0">{(p.subtotal || 0).toFixed(2)}</span>
                 </div>
               ))}
               <p style={{ textAlign: 'right', fontWeight: 'bold' }}>Sub: {data.totalVentasProductos.toFixed(2)}</p>

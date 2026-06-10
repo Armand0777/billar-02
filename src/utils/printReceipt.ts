@@ -97,20 +97,20 @@ export function printReceipt(data: ReceiptData) {
         body { 
           font-family: 'Courier New', Courier, monospace; 
           margin: 0; 
-          padding: 10px; 
-          width: 80mm; /* Ancho estndar de ticketera */
+          padding: 2px; 
+          width: 58mm; /* Ancho estándar de ticketera pequeña */
           color: #000;
         }
-        .ticket { width: 100%; max-width: 80mm; margin: 0 auto; }
-        .header { text-align: center; margin-bottom: 10px; }
+        .ticket { width: 100%; max-width: 58mm; margin: 0 auto; }
+        .header { text-align: center; margin-bottom: 5px; }
         .header img { max-width: 60px; margin-bottom: 5px; }
-        .header h1 { font-size: 16px; margin: 0; padding: 0; font-weight: bold; text-transform: uppercase; }
-        .header p { font-size: 12px; margin: 2px 0; }
-        .divider { border-top: 1px dashed #000; margin: 5px 0; }
-        .row { display: flex; justify-content: space-between; margin: 2px 0; font-size: 13px; }
-        .text-sm { font-size: 11px; }
-        .total-row { font-size: 16px; font-weight: bold; margin-top: 5px; }
-        .footer { text-align: center; font-size: 10px; margin-top: 15px; }
+        .header h1 { font-size: 14px; margin: 0; padding: 0; font-weight: bold; text-transform: uppercase; }
+        .header p { font-size: 10px; margin: 2px 0; }
+        .divider { border-top: 1px dashed #000; margin: 3px 0; }
+        .row { display: flex; justify-content: space-between; margin: 2px 0; font-size: 11px; }
+        .text-sm { font-size: 10px; }
+        .total-row { font-size: 13px; font-weight: bold; margin-top: 5px; }
+        .footer { text-align: center; font-size: 9px; margin-top: 10px; }
       </style>
     </head>
     <body>

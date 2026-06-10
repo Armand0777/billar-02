@@ -137,7 +137,7 @@ export default function CajaPage() {
             .from("ventas")
             .select(`
               *,
-              venta_items ( cantidad, subtotal, productos (nombre) ),
+              venta_items ( cantidad, precio_unitario, subtotal, productos (nombre) ),
               sesiones_mesa ( total_tiempo, mesas (tipo), tarifas (nombre, es_promocion) )
             `)
             .eq("id_sucursal", sucursalId)
@@ -252,13 +252,17 @@ export default function CajaPage() {
 
   const generarTicketZ = (cierreData: any) => {
     // Agrupar productos
-    const productMap = new Map<string, { cant: number, sub: number }>();
+    const productMap = new Map<string, { nombre: string, pu: number, cant: number, sub: number }>();
     ventasTurno.forEach(v => {
       if (v.venta_items) {
         v.venta_items.forEach((item: any) => {
           const name = item.productos?.nombre || "Producto";
-          const curr = productMap.get(name) || { cant: 0, sub: 0 };
-          productMap.set(name, {
+          const pu = Number(item.precio_unitario || 0);
+          const key = `${name}|${pu}`;
+          
+          const curr = productMap.get(key) || { nombre: name, pu, cant: 0, sub: 0 };
+          productMap.set(key, {
+            ...curr,
             cant: curr.cant + Number(item.cantidad),
             sub: curr.sub + Number(item.subtotal)
           });
@@ -266,9 +270,10 @@ export default function CajaPage() {
       }
     });
 
-    const desgloseProductos = Array.from(productMap.entries()).map(([nombre, vals]) => ({
-      nombre,
+    const desgloseProductos = Array.from(productMap.values()).map(vals => ({
+      nombre: vals.nombre,
       cantidad: vals.cant,
+      precioUnitario: vals.pu,
       subtotal: vals.sub
     }));
 
