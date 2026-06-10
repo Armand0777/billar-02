@@ -1082,8 +1082,12 @@ export default function MesasPage() {
               <div className="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 content-start">
                 {filteredProducts.map(prod => (
                   <button key={prod.id_producto} onClick={() => handleAddProduct(prod)} className="bg-[#1a1a1c] border border-[#2a2a2c] hover:border-billanga-primary/50 hover:shadow-[0_0_15px_rgba(0,230,118,0.15)] rounded-2xl p-4 flex flex-col items-center justify-between aspect-square transition-all active:scale-95 group">
-                    <div className="w-12 h-12 rounded-full bg-black/40 flex items-center justify-center mb-3 group-hover:bg-billanga-primary/20 transition-colors">
-                      <Tag className="w-5 h-5 text-billanga-gray group-hover:text-billanga-primary" />
+                    <div className="w-16 h-16 rounded-xl bg-black/40 flex items-center justify-center mb-3 group-hover:bg-billanga-primary/20 transition-colors overflow-hidden">
+                      {prod.imagen_url ? (
+                        <img src={prod.imagen_url} alt={prod.nombre} className="w-full h-full object-cover group-hover:scale-110 transition-transform" />
+                      ) : (
+                        <Tag className="w-6 h-6 text-billanga-gray group-hover:text-billanga-primary transition-colors" />
+                      )}
                     </div>
                     <div className="text-center w-full">
                       <h4 className="font-bold text-sm text-white leading-tight mb-1 line-clamp-2">{prod.nombre}</h4>
