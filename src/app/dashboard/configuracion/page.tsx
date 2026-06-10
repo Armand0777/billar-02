@@ -438,6 +438,7 @@ export default function ConfiguracionPage() {
                     </label>
                   </div>
                 </div>
+                </div> {/* Cierra el contenedor de la columna izquierda */}
 
                 {tarifaForm.es_promocion && (
                   <div className="w-full md:w-1/2 space-y-4 animate-in fade-in duration-300 border-t md:border-t-0 md:border-l border-[#2a2a2c] pt-6 md:pt-0 md:pl-8 mt-4 md:mt-0">
@@ -555,7 +556,6 @@ export default function ConfiguracionPage() {
                       </div>
                     </div>
                   )}
-                </div>
               </div>
               <div className="p-5 border-t border-[#2a2a2c] flex gap-3 justify-end bg-black/20 shrink-0">
                 <button type="button" onClick={() => setIsTarifaModalOpen(false)} className="px-5 py-2.5 rounded-xl font-bold text-zinc-300 hover:text-white hover:bg-zinc-800 transition-colors">Cancelar</button>
