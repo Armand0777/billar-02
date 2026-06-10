@@ -804,8 +804,8 @@ export default function MesasPage() {
       {/* --- MODAL: Abrir Sesión con Modalidades --- */}
       {isOpeningSession && selectedMesa && (
         <div className="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 flex items-center justify-center p-4">
-          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-lg rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
-            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center bg-black/20">
+          <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-lg rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200 flex flex-col max-h-[90vh]">
+            <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center bg-black/20 shrink-0">
               <div>
                 <h3 className="font-bold text-lg text-white">Abrir {selectedMesa.nombre || `Mesa ${selectedMesa.numero}`}</h3>
                 <p className="text-xs text-billanga-gray uppercase">Configuración de Partida</p>
@@ -813,7 +813,7 @@ export default function MesasPage() {
               <button onClick={() => { setIsOpeningSession(false); setSelectedMesa(null); }} className="text-billanga-gray hover:text-white"><X className="w-5 h-5"/></button>
             </div>
             
-            <div className="p-6 space-y-6">
+            <div className="p-6 space-y-6 overflow-y-auto flex-1 scrollbar-thin scrollbar-thumb-[#2a2a2c]">
               {/* Selector de Modalidad */}
               <div className="space-y-3">
                 <label className="text-xs font-bold text-billanga-gray uppercase tracking-wider block">Modalidad de Juego</label>
@@ -965,7 +965,7 @@ export default function MesasPage() {
                 })()}
               </div>
             </div>
-            <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3">
+            <div className="p-6 border-t border-[#2a2a2c] bg-black/20 flex gap-3 shrink-0">
               <button onClick={() => { setIsOpeningSession(false); setSelectedMesa(null); }} className="flex-1 py-3 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white font-bold text-sm">Cancelar</button>
               <button onClick={handleConfirmStart} className="flex-[2] py-3 rounded-lg bg-billanga-primary hover:bg-billanga-primary-dark text-white font-bold text-sm flex items-center justify-center gap-2 shadow-[0_0_15px_rgba(0,230,118,0.3)]"><Play className="w-4 h-4 fill-white" /> Iniciar Mesa</button>
             </div>
