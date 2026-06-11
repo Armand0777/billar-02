@@ -27,7 +27,7 @@ export default async function DashboardPage() {
     const { data: { user } } = await supabase.auth.getUser();
     let dbUser: any = null;
     if (user) {
-      const { data } = await supabase.from("usuarios").select("*").eq("auth_id", user.id).single();
+      const { data } = await supabase.from("usuarios").select("*, roles(nombre)").eq("auth_id", user.id).single();
       dbUser = data;
     }
 
@@ -51,7 +51,7 @@ export default async function DashboardPage() {
     let isCajaCerradaCajero = false;
 
     // Si es cajero, verificar su caja actual
-    if (dbUser && dbUser.rol === 'cajero') {
+    if (dbUser && dbUser.roles?.nombre === 'cajero') {
       userIdFiltro = dbUser.id_usuario;
       
       const { data: lastArqueo } = await supabase
@@ -69,10 +69,12 @@ export default async function DashboardPage() {
       }
     }
 
+    let gananciaMesasTotal = 0;
+
     // 1. Obtener ventas del día (o del turno del cajero)
     let ventasQuery = supabase
       .from("ventas")
-      .select("total, metodo_pago, estado")
+      .select("total, metodo_pago, estado, id_sesion, venta_items(cantidad, precio_unitario)")
       .gte("created_at", inicioFiltroISO);
 
     if (userIdFiltro) {
@@ -91,13 +93,21 @@ export default async function DashboardPage() {
       totalVentasHoy = ventasValidas.reduce((sum, v) => sum + Number(v.total || 0), 0);
       ticketPromedio = ventasHoyCount > 0 ? totalVentasHoy / ventasHoyCount : 0;
 
-      // Desglose por método de pago
+      // Desglose por método de pago y ganancias de mesas
       ventasValidas.forEach(v => {
         const totalNum = Number(v.total || 0);
         if (v.metodo_pago === 'efectivo') efectivoTotal += totalNum;
         else if (v.metodo_pago === 'tarjeta') tarjetaTotal += totalNum;
         else if (v.metodo_pago === 'qr') qrTotal += totalNum;
         else mixtaTotal += totalNum; // mixta, fiado, etc.
+
+        // Calcular la ganancia de la mesa separada (Total menos productos)
+        if (v.id_sesion) {
+          const costoProductosMesa = (v.venta_items || []).reduce((acc: number, item: any) => {
+            return acc + (Number(item.cantidad) * Number(item.precio_unitario));
+          }, 0);
+          gananciaMesasTotal += Math.max(0, totalNum - costoProductosMesa);
+        }
       });
     }
 
@@ -208,7 +218,7 @@ export default async function DashboardPage() {
       )}
 
       {/* Primer Fila: KPIs Principales */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
         {/* Ventas del Día */}
         <div className="bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 border-t-billanga-primary rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md">
           <div className="flex justify-between items-start mb-2">
@@ -219,6 +229,20 @@ export default async function DashboardPage() {
             Bs. {totalVentasHoy.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
           </div>
           <p className="text-xs text-billanga-gray">{ventasHoyCount} ticket(s) emitidos</p>
+        </div>
+
+        {/* Ganancia de Mesas */}
+        <div className="bg-[#1a1a1c] border border-[#2a2a2c] border-t-4 border-t-purple-500 rounded-xl p-6 relative overflow-hidden group hover:bg-[#202022] transition-all duration-300 shadow-md">
+          <div className="flex justify-between items-start mb-2">
+            <h3 className="text-billanga-gray text-xs font-bold tracking-wider uppercase">Ingresos Mesas</h3>
+            <div className="p-1 bg-[#2a2a2c] rounded-md group-hover:bg-purple-500/20 transition-colors">
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-billanga-gray group-hover:text-purple-500"><rect x="4" y="4" width="16" height="16" rx="2" ry="2"></rect><rect x="9" y="9" width="6" height="6"></rect><line x1="9" y1="1" x2="9" y2="4"></line><line x1="15" y1="1" x2="15" y2="4"></line><line x1="9" y1="20" x2="9" y2="23"></line><line x1="15" y1="20" x2="15" y2="23"></line><line x1="20" y1="9" x2="23" y2="9"></line><line x1="20" y1="14" x2="23" y2="14"></line><line x1="1" y1="9" x2="4" y2="9"></line><line x1="1" y1="14" x2="4" y2="14"></line></svg>
+            </div>
+          </div>
+          <div className="text-3xl font-bold text-white mb-1">
+            Bs. {gananciaMesasTotal.toLocaleString("es-BO", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+          </div>
+          <p className="text-xs text-billanga-gray">Exclusivo tiempo de billar</p>
         </div>
 
         {/* Ticket Promedio */}

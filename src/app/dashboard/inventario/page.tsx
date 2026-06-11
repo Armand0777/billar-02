@@ -267,12 +267,28 @@ export default function InventarioPage() {
         // Auto-crear entrada de inventario si hay sucursal
         if (newProd && activeSucursalId) {
           const stockInicial = Number(productForm.stock_inicial) || 0;
-          await supabase.from("inventario").insert({
+          const { data: newInv, error: invError } = await supabase.from("inventario").insert({
             id_sucursal: activeSucursalId,
             id_producto: newProd.id_producto,
             stock: stockInicial,
             stock_minimo: 5
-          });
+          }).select().single();
+
+          if (invError) throw new Error("Producto creado, pero falló el inventario: " + invError.message);
+
+          if (stockInicial > 0 && newInv) {
+            await supabase.from("movimientos_inventario").insert({
+              id_inventario: newInv.id_inventario,
+              id_sucursal: activeSucursalId,
+              id_producto: newProd.id_producto,
+              tipo: 'entrada',
+              cantidad: stockInicial,
+              stock_antes: 0,
+              stock_despues: stockInicial,
+              motivo: 'Stock inicial',
+              created_by: currentUser?.id_usuario || null
+            });
+          }
         }
       }
 
