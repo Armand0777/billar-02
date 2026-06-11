@@ -17,6 +17,7 @@ export default async function DashboardPage() {
   let tarjetaTotal = 0;
   let qrTotal = 0;
   let mixtaTotal = 0;
+  let gananciaMesasTotal = 0;
   
   let ultimasVentas: any[] = [];
   let topProductos: any[] = [];
@@ -68,8 +69,6 @@ export default async function DashboardPage() {
         isCajaCerradaCajero = true; // No tiene caja abierta, mostrar en 0
       }
     }
-
-    let gananciaMesasTotal = 0;
 
     // 1. Obtener ventas del día (o del turno del cajero)
     let ventasQuery = supabase
