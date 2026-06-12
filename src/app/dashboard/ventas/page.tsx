@@ -1,10 +1,11 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
+import { useSearchParams } from "next/navigation";
 import {
   Receipt, Search, Eye, XCircle, RefreshCw, Calendar,
   Banknote, TrendingUp, ShoppingBag, AlertTriangle, X, CreditCard,
-  Plus, Lock
+  Plus, Lock, Clock, Timer, Tag
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
 import VentaDirectaPOS from "@/components/VentaDirectaPOS";
@@ -20,7 +21,7 @@ interface VentaRow {
   venta_items: any[];
 }
 
-export default function VentasPage() {
+function VentasContent() {
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState("");
   const [ventas, setVentas] = useState<VentaRow[]>([]);
@@ -37,9 +38,21 @@ export default function VentasPage() {
   // Detalle
   const [selectedVenta, setSelectedVenta] = useState<VentaRow | null>(null);
 
+  const searchParams = useSearchParams();
+  const targetId = searchParams.get("id");
+
   const supabase = createClient();
 
   useEffect(() => { loadData(); }, []);
+
+  useEffect(() => {
+    if (targetId && ventas.length > 0) {
+      const found = ventas.find(v => v.id_venta === targetId);
+      if (found) {
+        setSelectedVenta(found);
+      }
+    }
+  }, [targetId, ventas]);
 
   const loadData = async () => {
     setLoading(true);
@@ -116,7 +129,11 @@ export default function VentasPage() {
         .from("ventas")
         .select(`
           id_venta, total, metodo_pago, estado, created_at,
-          sesiones_mesa:id_sesion(id_sesion, mesas:id_mesa(numero, nombre)),
+          sesiones_mesa:id_sesion(
+            id_sesion, inicio, fin, total_tiempo, modalidad, costo_partida, tiempo_fijo_minutos,
+            tarifas:id_tarifa(nombre, precio_hora),
+            mesas:id_mesa(numero, nombre)
+          ),
           usuarios:id_usuario(nombre),
           venta_items(id_venta_item, cantidad, precio_unitario, subtotal, productos:id_producto(nombre))
         `)
@@ -126,15 +143,22 @@ export default function VentasPage() {
       const { data, error } = await query;
       if (error) throw error;
 
-      const normalized = (data || []).map((v: any) => ({
-        ...v,
-        sesiones_mesa: Array.isArray(v.sesiones_mesa) ? v.sesiones_mesa[0] : v.sesiones_mesa,
-        usuarios: Array.isArray(v.usuarios) ? v.usuarios[0] : v.usuarios,
-        venta_items: (v.venta_items || []).map((item: any) => ({
-          ...item,
-          productos: Array.isArray(item.productos) ? item.productos[0] : item.productos
-        }))
-      }));
+      const normalized = (data || []).map((v: any) => {
+        const sesion = Array.isArray(v.sesiones_mesa) ? v.sesiones_mesa[0] : v.sesiones_mesa;
+        if (sesion) {
+          sesion.mesas = Array.isArray(sesion.mesas) ? sesion.mesas[0] : sesion.mesas;
+          sesion.tarifas = Array.isArray(sesion.tarifas) ? sesion.tarifas[0] : sesion.tarifas;
+        }
+        return {
+          ...v,
+          sesiones_mesa: sesion,
+          usuarios: Array.isArray(v.usuarios) ? v.usuarios[0] : v.usuarios,
+          venta_items: (v.venta_items || []).map((item: any) => ({
+            ...item,
+            productos: Array.isArray(item.productos) ? item.productos[0] : item.productos
+          }))
+        };
+      });
       setVentas(normalized);
     } catch (err: any) {
       console.error(err);
@@ -283,26 +307,120 @@ export default function VentasPage() {
               <button onClick={() => setSelectedVenta(null)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
             </div>
             <div className="p-6 space-y-4">
-              <div className="grid grid-cols-2 gap-4 text-sm">
-                <div><span className="text-billanga-gray text-xs block">Fecha</span><span className="text-white font-bold">{new Date(selectedVenta.created_at).toLocaleString("es-BO")}</span></div>
+              <div className="grid grid-cols-2 gap-4 text-sm bg-black/20 p-4 rounded-xl border border-[#2a2a2c]">
+                <div><span className="text-billanga-gray text-xs block">Fecha y Hora</span><span className="text-white font-bold">{new Date(selectedVenta.created_at).toLocaleString("es-BO")}</span></div>
                 <div><span className="text-billanga-gray text-xs block">Estado</span><span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${estadoBadge(selectedVenta.estado)}`}>{selectedVenta.estado}</span></div>
                 <div><span className="text-billanga-gray text-xs block">Método de Pago</span><span className="text-white font-bold capitalize">{selectedVenta.metodo_pago}</span></div>
                 <div><span className="text-billanga-gray text-xs block">Atendió</span><span className="text-white font-bold">{selectedVenta.usuarios?.nombre || "—"}</span></div>
               </div>
-              <div className="border-t border-[#2a2a2c] pt-4">
-                <h4 className="text-xs font-bold text-billanga-gray uppercase tracking-wider mb-3">Productos</h4>
+
+              {/* Detalle de Mesa si aplica */}
+              {selectedVenta.sesiones_mesa && (() => {
+                const sesion = selectedVenta.sesiones_mesa;
+                const mesaInfo = sesion.mesas;
+                const tarifaInfo = sesion.tarifas;
+                
+                const horaInicioStr = new Date(sesion.inicio).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" });
+                const horaFinStr = sesion.fin ? new Date(sesion.fin).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" }) : "En curso";
+                const fechaSesionStr = new Date(sesion.inicio).toLocaleDateString("es-BO");
+                
+                let modalidadTexto = "Abierto";
+                if (sesion.modalidad === "fijo") {
+                  modalidadTexto = `Tiempo Fijo (${sesion.tiempo_fijo_minutos} min)`;
+                } else if (sesion.modalidad === "partida") {
+                  modalidadTexto = `Por Partida Fija (Bs. ${Number(sesion.costo_partida || 0).toFixed(2)})`;
+                }
+
+                const formatDuration = (hoursNum: number) => {
+                  const h = Math.floor(hoursNum);
+                  const m = Math.round((hoursNum - h) * 60);
+                  return `${h}h ${m}m`;
+                };
+
+                return (
+                  <div className="border border-[#2a2a2c] bg-black/40 p-4 rounded-xl space-y-3">
+                    <div className="flex justify-between items-center pb-2 border-b border-[#2a2a2c]/50">
+                      <h4 className="text-sm font-bold text-white flex items-center gap-2">
+                        <Clock className="w-4 h-4 text-billanga-primary" /> Uso de Mesa
+                      </h4>
+                      <span className="text-xs bg-billanga-primary/10 text-billanga-primary font-bold px-2.5 py-0.5 rounded-full">
+                        {mesaInfo ? `Mesa ${mesaInfo.numero} - ${mesaInfo.nombre}` : "Mesa Desconocida"}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-y-2 gap-x-4 text-xs">
+                      <div>
+                        <span className="text-billanga-gray block">Modalidad</span>
+                        <span className="text-white font-semibold">{modalidadTexto}</span>
+                      </div>
+                      <div>
+                        <span className="text-billanga-gray block">Tarifa Aplicada</span>
+                        <span className="text-white font-semibold">
+                          {tarifaInfo ? `${tarifaInfo.nombre} (Bs. ${Number(tarifaInfo.precio_hora).toFixed(2)}/h)` : "—"}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-billanga-gray block">Horas de Juego</span>
+                        <span className="text-white font-semibold flex items-center gap-1">
+                          <Timer className="w-3 h-3 text-billanga-gray" />
+                          {formatDuration(Number(sesion.total_tiempo || 0))} ({Number(sesion.total_tiempo || 0).toFixed(2)} h)
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-billanga-gray block">Sesión (Inicio - Fin)</span>
+                        <span className="text-white font-semibold">
+                          {horaInicioStr} - {horaFinStr} ({fechaSesionStr})
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Detalle de Productos Adicionales */}
+              <div className="border border-[#2a2a2c] bg-black/20 p-4 rounded-xl space-y-3">
+                <h4 className="text-xs font-bold text-billanga-gray uppercase tracking-wider flex items-center gap-1.5">
+                  <Tag className="w-3.5 h-3.5" /> Productos Consumidos
+                </h4>
                 <div className="space-y-2">
                   {selectedVenta.venta_items?.map((item: any, i: number) => (
-                    <div key={i} className="flex justify-between items-center bg-black/30 p-3 rounded-lg text-sm">
-                      <div><span className="text-white font-bold">{item.productos?.nombre || "Producto"}</span><span className="text-billanga-gray text-xs ml-2">x{Number(item.cantidad).toFixed(0)}</span></div>
+                    <div key={i} className="flex justify-between items-center bg-black/30 p-2.5 rounded-lg text-sm border border-[#2a2a2c]/30">
+                      <div>
+                        <span className="text-white font-medium">{item.productos?.nombre || "Producto"}</span>
+                        <span className="text-billanga-gray text-xs ml-2 bg-[#2a2a2c] px-2 py-0.5 rounded-full font-bold">
+                          x{Number(item.cantidad).toFixed(0)}
+                        </span>
+                      </div>
                       <span className="font-bold text-white">Bs. {Number(item.subtotal).toFixed(2)}</span>
                     </div>
                   ))}
-                  {(!selectedVenta.venta_items || selectedVenta.venta_items.length === 0) && <p className="text-billanga-gray text-sm text-center py-4">Solo tiempo de juego (sin productos adicionales)</p>}
+                  {(!selectedVenta.venta_items || selectedVenta.venta_items.length === 0) && (
+                    <p className="text-billanga-gray text-xs text-center py-2">Sin productos adicionales consumidos</p>
+                  )}
                 </div>
               </div>
+
+              {/* Split de Totales */}
+              {selectedVenta.sesiones_mesa && (() => {
+                const totalProductos = selectedVenta.venta_items?.reduce((sum: number, item: any) => sum + Number(item.subtotal || 0), 0) || 0;
+                const costoTiempo = Math.max(0, Number(selectedVenta.total) - totalProductos);
+                return (
+                  <div className="grid grid-cols-2 gap-3 text-xs border border-[#2a2a2c]/60 p-3 rounded-xl bg-black/10">
+                    <div className="flex justify-between items-center p-2 rounded bg-black/30 border border-[#2a2a2c]/30">
+                      <span className="text-billanga-gray">Costo Mesa:</span>
+                      <span className="text-white font-bold">Bs. {costoTiempo.toFixed(2)}</span>
+                    </div>
+                    <div className="flex justify-between items-center p-2 rounded bg-black/30 border border-[#2a2a2c]/30">
+                      <span className="text-billanga-gray">Costo Prod:</span>
+                      <span className="text-white font-bold">Bs. {totalProductos.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
+
+              {/* Total Final */}
               <div className="bg-billanga-primary/10 border border-billanga-primary/30 p-4 rounded-xl flex justify-between items-center">
-                <span className="text-sm text-billanga-primary font-bold uppercase">Total</span>
+                <span className="text-sm text-billanga-primary font-bold uppercase">Total Pagado</span>
                 <span className="text-2xl font-black text-white">Bs. {Number(selectedVenta.total).toFixed(2)}</span>
               </div>
             </div>
@@ -317,5 +435,18 @@ export default function VentasPage() {
         />
       )}
     </div>
+  );
+}
+
+export default function VentasPage() {
+  return (
+    <Suspense fallback={
+      <div className="flex flex-col items-center justify-center py-24 text-billanga-gray">
+        <RefreshCw className="w-10 h-10 animate-spin text-billanga-primary mb-4" />
+        <p className="text-sm">Cargando módulo de ventas...</p>
+      </div>
+    }>
+      <VentasContent />
+    </Suspense>
   );
 }

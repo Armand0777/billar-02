@@ -368,9 +368,9 @@ export default async function DashboardPage() {
         <div className="lg:col-span-2 bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl p-6 shadow-sm">
           <div className="flex justify-between items-center mb-6">
             <h2 className="text-base font-bold text-white">Últimas ventas</h2>
-            <button className="px-4 py-1.5 rounded-lg border border-[#2a2a2c] text-sm text-billanga-gray hover:text-white hover:bg-[#2a2a2c] transition-colors">
+            <a href="/dashboard/ventas" className="px-4 py-1.5 rounded-lg border border-[#2a2a2c] text-sm text-billanga-gray hover:text-white hover:bg-[#2a2a2c] transition-colors">
               Ver todo
-            </button>
+            </a>
           </div>
           
           <div className="overflow-x-auto">
@@ -389,7 +389,11 @@ export default async function DashboardPage() {
                 {ultimasVentas.length > 0 ? (
                   ultimasVentas.map((venta) => (
                     <tr key={venta.id_venta} className="border-b border-[#2a2a2c]/50 hover:bg-white/5 transition-colors text-sm text-white">
-                      <td className="py-3 pl-4 font-mono text-xs max-w-[120px] truncate">{venta.id_venta}</td>
+                      <td className="py-3 pl-4 font-mono text-xs max-w-[120px] truncate">
+                        <a href={`/dashboard/ventas?id=${venta.id_venta}`} className="hover:underline text-billanga-primary font-bold">
+                          {venta.id_venta}
+                        </a>
+                      </td>
                       <td className="py-3">
                         {new Date(venta.created_at).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}
                       </td>
