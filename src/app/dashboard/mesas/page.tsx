@@ -525,7 +525,7 @@ export default function MesasPage() {
       timeString = `${hrs.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
       
       const costoFijo = ((sesion.tiempo_fijo_minutos || 60) / 60) * precioHora;
-      accumulatedValue = Math.round(costoFijo).toFixed(2);
+      accumulatedValue = costoFijo.toFixed(2);
     } else {
       const hrs = Math.floor(diffSecs / 3600);
       const mins = Math.floor((diffSecs % 3600) / 60);
@@ -541,7 +541,7 @@ export default function MesasPage() {
         horasACobrar = horasCompletas - horasRegaloPromo;
       }
       
-      accumulatedValue = Math.round(horasACobrar * precioHora).toFixed(2);
+      accumulatedValue = (horasACobrar * precioHora).toFixed(2);
     }
 
     return {
@@ -572,7 +572,7 @@ export default function MesasPage() {
       const totalProductos = posVenta?.items.reduce((acc, item) => acc + item.subtotal, 0) || 0;
       const granTotal = totalTiempo + totalProductos;
 
-      await supabase
+      const { error: errorSesion } = await supabase
         .from("sesiones_mesa")
         .update({
           fin: new Date().toISOString(),
@@ -581,16 +581,24 @@ export default function MesasPage() {
         })
         .eq("id_sesion", posSesion.id_sesion);
 
+      if (errorSesion) {
+        throw new Error("No se pudo cerrar la sesión en la base de datos: " + errorSesion.message);
+      }
+
       if (posVenta?.id_venta) {
-        await supabase.from("ventas").update({
+        const { error: errorVenta } = await supabase.from("ventas").update({
             total: granTotal,
             metodo_pago: metodoPago,
             estado: "completada",
             id_usuario: currentUser.id_usuario,
             created_at: new Date().toISOString()
         }).eq("id_venta", posVenta.id_venta);
+
+        if (errorVenta) {
+          throw new Error("No se pudo completar el registro de la venta: " + errorVenta.message);
+        }
       } else {
-        await supabase.from("ventas").insert({
+        const { error: errorVentaInsert } = await supabase.from("ventas").insert({
             id_sucursal: activeSucursalId,
             id_sesion: posSesion.id_sesion,
             id_usuario: currentUser.id_usuario,
@@ -598,6 +606,10 @@ export default function MesasPage() {
             metodo_pago: metodoPago,
             estado: "completada"
         });
+
+        if (errorVentaInsert) {
+          throw new Error("No se pudo registrar la nueva venta en la base de datos: " + errorVentaInsert.message);
+        }
       }
 
       const tarifaAplicada = tarifas.find(t => t.id_tarifa === posSesion.id_tarifa);
@@ -607,18 +619,26 @@ export default function MesasPage() {
       // Descontar productos de promo del inventario
       if (promoProducts.length > 0) {
         for (const prod of promoProducts) {
-          const { data: invData } = await supabase
+          const { data: invData, error: errorSelectInv } = await supabase
             .from("inventario")
             .select("id_inventario, stock")
             .eq("id_producto", prod.id_producto)
             .eq("id_sucursal", activeSucursalId)
             .single();
           
+          if (errorSelectInv) {
+            throw new Error(`Error al consultar inventario de promo para ${prod.nombre}: ` + errorSelectInv.message);
+          }
+          
           if (invData) {
-            await supabase
+            const { error: errorUpdateInv } = await supabase
               .from("inventario")
               .update({ stock: Math.max(0, invData.stock - (prod.cantidad || 1)) })
               .eq("id_inventario", invData.id_inventario);
+
+            if (errorUpdateInv) {
+              throw new Error(`Error al actualizar stock de promo para ${prod.nombre}: ` + errorUpdateInv.message);
+            }
           }
         }
       }
