@@ -545,12 +545,20 @@ export default function MesasPage() {
 
       if (posVenta?.id_venta) {
         await supabase.from("ventas").update({
-            total: granTotal, metodo_pago: metodoPago, estado: "completada"
+            total: granTotal,
+            metodo_pago: metodoPago,
+            estado: "completada",
+            id_usuario: currentUser.id_usuario,
+            created_at: new Date().toISOString()
         }).eq("id_venta", posVenta.id_venta);
       } else {
         await supabase.from("ventas").insert({
-            id_sucursal: activeSucursalId, id_sesion: posSesion.id_sesion, id_usuario: currentUser.id_usuario,
-            total: granTotal, metodo_pago: metodoPago, estado: "completada"
+            id_sucursal: activeSucursalId,
+            id_sesion: posSesion.id_sesion,
+            id_usuario: currentUser.id_usuario,
+            total: granTotal,
+            metodo_pago: metodoPago,
+            estado: "completada"
         });
       }
 
