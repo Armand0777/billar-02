@@ -45,19 +45,67 @@ export default function VentasPage() {
     setLoading(true);
     setDbError("");
     try {
+      // 0. Obtener usuario autenticado y su rol/nivel
+      const { data: { user }, error: authError } = await supabase.auth.getUser();
+      if (authError || !user) throw new Error("No hay usuario autenticado.");
+      
+      const { data: dbUser } = await supabase
+        .from("usuarios")
+        .select("id_usuario, nombre, roles(nombre, nivel)")
+        .eq("auth_id", user.id)
+        .single();
+
       // 1. Obtener sucursal actual para revisar la caja
       const { data: sucursales } = await supabase.from("sucursales").select("id_sucursal");
       const sucursalId = sucursales?.[0]?.id_sucursal || "";
 
       // 2. Verificar Caja Abierta
       const { data: cajas } = await supabase.from("cajas").select("id_caja").eq("id_sucursal", sucursalId).eq("activo", true).limit(1).maybeSingle();
-      if (cajas) {
-        const { data: lastArqueo } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "apertura").order("created_at", { ascending: false }).limit(1).maybeSingle();
-        if (lastArqueo) {
-          const { data: cierrePost } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "cierre").gt("created_at", lastArqueo.created_at).limit(1).maybeSingle();
-          setCajaAbierta(!cierrePost);
+      if (cajas && dbUser) {
+        const rolesData = dbUser.roles;
+        const rolesObj = Array.isArray(rolesData) ? rolesData[0] : rolesData;
+        const userNivel = rolesObj?.nivel || 0;
+        const userRol = rolesObj?.nombre || "";
+
+        if (userNivel >= 4) {
+          // Admin y Superadmin pueden ver y operar siempre (by-pass de seguridad para supervisión)
+          setCajaAbierta(true);
+        } else if (userRol === 'cajero') {
+          // Si es cajero, verificar que ESTE cajero específico tenga su caja abierta
+          const { data: lastArqueo } = await supabase
+            .from("arqueos")
+            .select("*")
+            .eq("id_caja", cajas.id_caja)
+            .eq("id_usuario", dbUser.id_usuario)
+            .eq("tipo", "apertura")
+            .order("created_at", { ascending: false })
+            .limit(1)
+            .maybeSingle();
+
+          if (lastArqueo) {
+            const { data: cierrePost } = await supabase
+              .from("arqueos")
+              .select("*")
+              .eq("id_caja", cajas.id_caja)
+              .eq("id_usuario", dbUser.id_usuario)
+              .eq("tipo", "cierre")
+              .gt("created_at", lastArqueo.created_at)
+              .limit(1)
+              .maybeSingle();
+
+            setCajaAbierta(!cierrePost);
+          } else {
+            setCajaAbierta(false);
+          }
         } else {
-          setCajaAbierta(false);
+          // Otros roles: verificar si hay al menos una caja abierta en general
+          const { data: lastArqueo } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "apertura").order("created_at", { ascending: false }).limit(1).maybeSingle();
+          if (lastArqueo) {
+            const { data: cierrePost } = await supabase.from("arqueos").select("*").eq("id_caja", cajas.id_caja).eq("tipo", "cierre").gt("created_at", lastArqueo.created_at).limit(1).maybeSingle();
+            setCajaAbierta(!cierrePost);
+          } else {
+            setCajaAbierta(false);
+          }
         }
       } else {
         setCajaAbierta(false);
