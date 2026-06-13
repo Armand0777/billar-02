@@ -144,7 +144,7 @@ export default function ImageUploader({ value, onChange, folder = "general" }: I
                 <UploadCloud size={32} className={`${isDragging ? "text-amber-500" : "text-neutral-400"}`} />
               </div>
               <div className="text-center">
-                <p className="text-sm font-medium text-white mb-1">Haz clic o arrastra una imagen</p>
+                <p className="text-sm font-medium text-white mb-1">Arrastra la imagen para subir o abrir carpeta</p>
                 <p className="text-xs opacity-70">JPG, PNG o WebP (Max. 5MB)</p>
               </div>
             </div>
