@@ -328,12 +328,15 @@ export default function MesasPage() {
     setIsPosOpen(true);
     setPosVenta(null);
 
-    const { data: ventaData } = await supabase
+    const { data: ventaDataList } = await supabase
       .from("ventas")
       .select("id_venta, estado")
       .eq("id_sesion", sesion.id_sesion)
       .eq("estado", "pendiente")
-      .maybeSingle(); 
+      .order("created_at", { ascending: false })
+      .limit(1);
+      
+    const ventaData = ventaDataList && ventaDataList.length > 0 ? ventaDataList[0] : null;
 
     if (ventaData) {
       const { data: itemsData } = await supabase
@@ -396,12 +399,15 @@ export default function MesasPage() {
 
     if (!currentVentaId) {
       // Prevenir duplicidad de ventas concurrentes verificando primero
-      const { data: existingVenta } = await supabase
+      const { data: existingVentaList } = await supabase
         .from("ventas")
         .select("id_venta")
         .eq("id_sesion", posSesion.id_sesion)
         .eq("estado", "pendiente")
-        .maybeSingle();
+        .order("created_at", { ascending: false })
+        .limit(1);
+
+      const existingVenta = existingVentaList && existingVentaList.length > 0 ? existingVentaList[0] : null;
 
       if (existingVenta) {
         currentVentaId = existingVenta.id_venta;
