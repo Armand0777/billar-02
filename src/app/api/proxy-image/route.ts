@@ -1,5 +1,15 @@
 import { NextRequest, NextResponse } from "next/server";
 
+function isAllowedUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url);
+    const supabaseHost = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL!).hostname;
+    return parsed.hostname === supabaseHost && parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 export async function GET(request: NextRequest) {
   const url = request.nextUrl.searchParams.get("url");
 
@@ -7,8 +17,11 @@ export async function GET(request: NextRequest) {
     return new NextResponse("Falta el parametro 'url'", { status: 400 });
   }
 
+  if (!isAllowedUrl(url)) {
+    return new NextResponse("Dominio no permitido", { status: 403 });
+  }
+
   try {
-    // Petición al servidor original (Supabase) desde el backend de Next.js
     const response = await fetch(url);
     if (!response.ok) {
       return new NextResponse("Error al descargar la imagen", { status: response.status });
@@ -17,11 +30,10 @@ export async function GET(request: NextRequest) {
     const contentType = response.headers.get("content-type");
     const arrayBuffer = await response.arrayBuffer();
 
-    // Devolver la imagen al cliente como si fuera nuestra
     return new NextResponse(arrayBuffer, {
       headers: {
         "Content-Type": contentType || "image/jpeg",
-        "Cache-Control": "public, max-age=31536000, immutable", // Cachear por 1 año
+        "Cache-Control": "public, max-age=31536000, immutable",
       },
     });
   } catch (error) {

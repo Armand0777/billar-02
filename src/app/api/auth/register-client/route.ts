@@ -1,5 +1,13 @@
 import { NextResponse } from "next/server";
 import { createClient } from "@supabase/supabase-js";
+import { z } from "zod";
+
+const registerSchema = z.object({
+  nombre: z.string().min(1, "El nombre es obligatorio"),
+  email: z.string().email("Email inválido"),
+  password: z.string().min(6, "La contraseña debe tener al menos 6 caracteres"),
+  telefono: z.string().optional(),
+});
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || "";
 const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || "";
@@ -14,11 +22,14 @@ const supabaseAdmin = createClient(supabaseUrl, supabaseServiceKey, {
 export async function POST(req: Request) {
   try {
     const body = await req.json();
-    const { nombre, email, password, telefono } = body;
-
-    if (!nombre || !email || !password) {
-      return NextResponse.json({ error: "Nombre, email y contraseña son obligatorios." }, { status: 400 });
+    const result = registerSchema.safeParse(body);
+    if (!result.success) {
+      return NextResponse.json(
+        { error: result.error.issues[0].message },
+        { status: 400 }
+      );
     }
+    const { nombre, email, password, telefono } = result.data;
 
     // 1. Create the user in Supabase Auth and auto-confirm email
     const { data: authData, error: authError } = await supabaseAdmin.auth.admin.createUser({

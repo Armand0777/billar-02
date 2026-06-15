@@ -1,40 +1,75 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { 
-  Users, Search, RefreshCw, AlertTriangle, 
-  Award, Edit, X, UserCheck 
+import { useState, useEffect, useRef } from "react";
+import {
+  Users, Search, RefreshCw, AlertTriangle,
+  Award, Edit, X, UserCheck, ChevronLeft, ChevronRight
 } from "lucide-react";
 import { createClient } from "@/utils/supabase/client";
+import type { Database } from "@/lib/database.types";
+
+type Cliente = Database["public"]["Tables"]["clientes"]["Row"];
+
+const PAGE_SIZE = 20;
 
 export default function ClientesPage() {
-  const [clientes, setClientes] = useState<any[]>([]);
+  const [clientes, setClientes] = useState<Cliente[]>([]);
   const [loading, setLoading] = useState(true);
   const [dbError, setDbError] = useState("");
   const [searchTerm, setSearchTerm] = useState("");
+  const [debouncedSearch, setDebouncedSearch] = useState("");
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
 
   const [isEditing, setIsEditing] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
-  const [currentCliente, setCurrentCliente] = useState<any>(null);
+  const [currentCliente, setCurrentCliente] = useState<Cliente | null>(null);
   const [editPuntos, setEditPuntos] = useState("");
   const [newCliente, setNewCliente] = useState({ nombre: "", email: "", telefono: "" });
 
-  const supabase = createClient();
+  const supabaseRef = useRef(createClient());
+  const supabase = supabaseRef.current;
 
-  useEffect(() => { loadClientes(); }, []);
+  // Debounce de búsqueda: 400ms después de que el usuario deja de escribir
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedSearch(searchTerm), 400);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
 
-  const loadClientes = async () => {
+  // Resetear página cuando cambia la búsqueda
+  useEffect(() => {
+    setPage(0);
+  }, [debouncedSearch]);
+
+  // Cargar clientes cuando cambia la página o la búsqueda
+  useEffect(() => {
+    loadClientes(page, debouncedSearch);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [page, debouncedSearch]);
+
+  const loadClientes = async (currentPage: number, search: string) => {
     setLoading(true);
+    setDbError("");
     try {
-      const { data, error } = await supabase
+      let query = supabase
         .from("clientes")
-        .select("*")
+        .select("*", { count: "exact" })
         .order("puntos_fidelidad", { ascending: false });
-      
+
+      if (search.trim()) {
+        query = query.or(
+          `nombre.ilike.%${search.trim()}%,email.ilike.%${search.trim()}%`
+        );
+      }
+
+      const from = currentPage * PAGE_SIZE;
+      const { data, error, count } = await query.range(from, from + PAGE_SIZE - 1);
+
       if (error) throw error;
       setClientes(data || []);
-    } catch (err: any) {
-      setDbError(err.message);
+      setTotalCount(count ?? 0);
+    } catch (err: unknown) {
+      setDbError(err instanceof Error ? err.message : "Error desconocido");
     } finally {
       setLoading(false);
     }
@@ -53,13 +88,13 @@ export default function ClientesPage() {
         .update({ puntos_fidelidad: newPuntos })
         .eq("id_cliente", currentCliente.id_cliente);
       if (error) throw error;
-      
+
       setIsEditing(false);
       setCurrentCliente(null);
       setEditPuntos("");
-      loadClientes();
-    } catch (err: any) {
-      alert("Error: " + err.message);
+      loadClientes(page, debouncedSearch);
+    } catch (err: unknown) {
+      alert("Error: " + (err instanceof Error ? err.message : "Error desconocido"));
     }
   };
 
@@ -76,7 +111,7 @@ export default function ClientesPage() {
           email: newCliente.email || null,
           telefono: newCliente.telefono || null,
           activo: true,
-          puntos_fidelidad: 0
+          puntos_fidelidad: 0,
         })
         .select();
 
@@ -85,23 +120,21 @@ export default function ClientesPage() {
 
       setIsCreating(false);
       setNewCliente({ nombre: "", email: "", telefono: "" });
-      loadClientes();
-    } catch (err: any) {
-      alert("Error al crear cliente: " + err.message);
+      loadClientes(0, debouncedSearch);
+      setPage(0);
+    } catch (err: unknown) {
+      alert("Error al crear cliente: " + (err instanceof Error ? err.message : "Error desconocido"));
     }
   };
 
-  const filteredClientes = clientes.filter(c => 
-    c.nombre.toLowerCase().includes(searchTerm.toLowerCase()) || 
-    (c.email && c.email.toLowerCase().includes(searchTerm.toLowerCase()))
-  );
+  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
 
   return (
     <div className="space-y-6 animate-in fade-in duration-500">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-2xl font-bold text-white flex items-center gap-2">
-            <UserCheck className="w-7 h-7 text-billanga-primary" /> 
+            <UserCheck className="w-7 h-7 text-billanga-primary" />
             Gestión de Clientes
           </h2>
           <p className="text-sm text-billanga-gray">
@@ -111,18 +144,24 @@ export default function ClientesPage() {
         <div className="flex items-center gap-3">
           <div className="relative">
             <Search className="w-4 h-4 absolute left-3 top-1/2 -translate-y-1/2 text-billanga-gray" />
-            <input 
-              type="text" 
-              placeholder="Buscar cliente..." 
+            <input
+              type="text"
+              placeholder="Buscar cliente..."
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
               className="pl-9 pr-4 py-2 bg-[#1a1a1c] border border-[#2a2a2c] rounded-xl text-sm focus:outline-none focus:border-billanga-primary text-white w-full md:w-64 transition-all"
             />
           </div>
-          <button onClick={loadClientes} className="p-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-xl transition-all">
+          <button
+            onClick={() => loadClientes(page, debouncedSearch)}
+            className="p-2 border border-[#2a2a2c] hover:bg-[#2a2a2c] text-white rounded-xl transition-all"
+          >
             <RefreshCw className={`w-5 h-5 ${loading ? "animate-spin" : ""}`} />
           </button>
-          <button onClick={() => setIsCreating(true)} className="px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-xl text-sm font-bold transition-all whitespace-nowrap">
+          <button
+            onClick={() => setIsCreating(true)}
+            className="px-4 py-2 bg-billanga-primary hover:bg-billanga-primary-dark text-white rounded-xl text-sm font-bold transition-all whitespace-nowrap"
+          >
             Nuevo Cliente
           </button>
         </div>
@@ -158,8 +197,8 @@ export default function ClientesPage() {
                     Cargando clientes...
                   </td>
                 </tr>
-              ) : filteredClientes.length > 0 ? (
-                filteredClientes.map((c) => (
+              ) : clientes.length > 0 ? (
+                clientes.map((c) => (
                   <tr key={c.id_cliente} className="border-b border-[#2a2a2c]/40 hover:bg-white/[0.02] transition-colors text-sm group">
                     <td className="py-4 pl-6">
                       <div className="flex items-center gap-3">
@@ -190,8 +229,12 @@ export default function ClientesPage() {
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
                     <td className="py-4 pr-6 text-right">
-                      <button 
-                        onClick={() => { setCurrentCliente(c); setEditPuntos(c.puntos_fidelidad.toString()); setIsEditing(true); }}
+                      <button
+                        onClick={() => {
+                          setCurrentCliente(c);
+                          setEditPuntos(c.puntos_fidelidad.toString());
+                          setIsEditing(true);
+                        }}
                         className="p-2 bg-[#2a2a2c] hover:bg-billanga-primary text-billanga-gray hover:text-white rounded-lg transition-all"
                         title="Modificar Puntos"
                       >
@@ -210,6 +253,34 @@ export default function ClientesPage() {
             </tbody>
           </table>
         </div>
+
+        {/* Paginación */}
+        {totalCount > PAGE_SIZE && (
+          <div className="px-6 py-4 border-t border-[#2a2a2c] flex items-center justify-between">
+            <span className="text-xs text-billanga-gray">
+              Mostrando {page * PAGE_SIZE + 1}–{Math.min((page + 1) * PAGE_SIZE, totalCount)} de {totalCount} clientes
+            </span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setPage(p => Math.max(0, p - 1))}
+                disabled={page === 0}
+                className="p-1.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-billanga-gray disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronLeft className="w-4 h-4" />
+              </button>
+              <span className="text-xs text-white font-medium px-2">
+                {page + 1} / {totalPages}
+              </span>
+              <button
+                onClick={() => setPage(p => Math.min(totalPages - 1, p + 1))}
+                disabled={page >= totalPages - 1}
+                className="p-1.5 rounded-lg border border-[#2a2a2c] hover:bg-[#2a2a2c] text-billanga-gray disabled:opacity-30 disabled:cursor-not-allowed transition-all"
+              >
+                <ChevronRight className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Modal Editar Puntos */}
@@ -218,7 +289,9 @@ export default function ClientesPage() {
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-sm rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center">
               <h3 className="font-bold text-lg text-white">Editar Puntos</h3>
-              <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
+              <button onClick={() => setIsEditing(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
@@ -227,8 +300,8 @@ export default function ClientesPage() {
                 </label>
                 <div className="relative">
                   <Award className="w-5 h-5 text-yellow-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input 
-                    type="number" 
+                  <input
+                    type="number"
                     value={editPuntos}
                     onChange={(e) => setEditPuntos(e.target.value)}
                     min="0"
@@ -251,13 +324,15 @@ export default function ClientesPage() {
           <div className="bg-[#1a1a1c] border border-[#2a2a2c] w-full max-w-sm rounded-2xl overflow-hidden animate-in zoom-in-95 duration-200">
             <div className="p-6 border-b border-[#2a2a2c] flex justify-between items-center">
               <h3 className="font-bold text-lg text-white">Nuevo Cliente</h3>
-              <button onClick={() => setIsCreating(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray"><X className="w-5 h-5" /></button>
+              <button onClick={() => setIsCreating(false)} className="p-2 hover:bg-[#2a2a2c] rounded-full text-billanga-gray">
+                <X className="w-5 h-5" />
+              </button>
             </div>
             <div className="p-6 space-y-4">
               <div>
                 <label className="text-sm font-medium text-billanga-gray block mb-1">Nombre Completo *</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newCliente.nombre}
                   onChange={(e) => setNewCliente({...newCliente, nombre: e.target.value})}
                   placeholder="Ej: Juan Pérez"
@@ -266,8 +341,8 @@ export default function ClientesPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-billanga-gray block mb-1">Email (Opcional)</label>
-                <input 
-                  type="email" 
+                <input
+                  type="email"
                   value={newCliente.email}
                   onChange={(e) => setNewCliente({...newCliente, email: e.target.value})}
                   placeholder="juan@ejemplo.com"
@@ -276,11 +351,11 @@ export default function ClientesPage() {
               </div>
               <div>
                 <label className="text-sm font-medium text-billanga-gray block mb-1">Teléfono (Opcional)</label>
-                <input 
-                  type="text" 
+                <input
+                  type="text"
                   value={newCliente.telefono}
                   onChange={(e) => setNewCliente({...newCliente, telefono: e.target.value})}
-                  placeholder="+58 412 1234567"
+                  placeholder="+591 71234567"
                   className="w-full bg-black/40 border border-[#2a2a2c] rounded-lg py-2.5 px-3 text-white focus:outline-none focus:border-billanga-primary"
                 />
               </div>
@@ -292,7 +367,6 @@ export default function ClientesPage() {
           </div>
         </div>
       )}
-
     </div>
   );
 }
