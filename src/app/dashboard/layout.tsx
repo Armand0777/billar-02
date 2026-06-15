@@ -91,8 +91,8 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
           return;
         }
 
-        const rolesArr = userData.roles as { nombre: string; nivel: number }[] | null;
-        const rolInfo = Array.isArray(rolesArr) ? rolesArr[0] : null;
+        const rolesRaw = userData.roles as unknown;
+        const rolInfo = (Array.isArray(rolesRaw) ? rolesRaw[0] : rolesRaw) as { nombre: string; nivel: number } | null;
         const profile: UserProfile = {
           nombre: userData.nombre,
           email: userData.email,

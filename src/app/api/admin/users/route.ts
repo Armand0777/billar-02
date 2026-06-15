@@ -46,8 +46,9 @@ async function getCallerLevel(): Promise<number | null> {
     .eq("auth_id", user.id)
     .maybeSingle();
 
-  const rolesArr = data?.roles as { nivel: number }[] | null;
-  return (Array.isArray(rolesArr) ? rolesArr[0] : null)?.nivel ?? null;
+  const rolesRaw = data?.roles as unknown;
+  const rolInfo = (Array.isArray(rolesRaw) ? rolesRaw[0] : rolesRaw) as { nivel: number } | null;
+  return rolInfo?.nivel ?? null;
 }
 
 export async function POST(req: Request) {
