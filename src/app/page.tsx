@@ -443,7 +443,7 @@ export default function HomePage() {
                       {misPedidos.map((pedido) => (
                         <div key={pedido.id_pedido} className="bg-[#1a1a1c] border border-white/10 p-4 rounded-2xl flex flex-col gap-3">
                           <div className="flex justify-between items-center pb-2 border-b border-white/5">
-                            <span className="text-xs font-bold text-billanga-gray">Pedido a las {new Date(pedido.created_at).toLocaleTimeString([], {hour: '2-digit', minute:'2-digit'})}</span>
+                            <span className="text-xs font-bold text-billanga-gray">Pedido a las {new Date(pedido.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: '2-digit', minute:'2-digit'})}</span>
                             <span className={`flex items-center gap-1.5 text-[10px] font-black uppercase px-2.5 py-1 rounded-full border ${
                               pedido.estado === 'pendiente' ? 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20' :
                               pedido.estado === 'preparacion' || pedido.estado === 'listo' ? 'bg-blue-500/10 text-blue-400 border-blue-500/20' :

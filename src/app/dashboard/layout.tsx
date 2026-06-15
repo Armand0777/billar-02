@@ -336,7 +336,7 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             <div>
               <h1 className="text-xl md:text-2xl font-bold">{getHeaderTitle()}</h1>
               <p className="text-xs md:text-sm text-billanga-gray capitalize hidden sm:block">
-                {new Date().toLocaleDateString('es-ES', { weekday: 'long', day: 'numeric', month: 'long' })}
+                {new Date().toLocaleDateString('es-ES', { timeZone: 'America/La_Paz', weekday: 'long', day: 'numeric', month: 'long' })}
               </p>
             </div>
           </div>

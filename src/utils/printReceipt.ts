@@ -22,7 +22,7 @@ export interface ReceiptData {
 }
 
 export function printReceipt(data: ReceiptData) {
-  const dateStr = new Date().toLocaleString("es-BO");
+  const dateStr = new Date().toLocaleString("es-BO", { timeZone: "America/La_Paz" });
   const logoUrl = "/logo_transparente.png"; // Se asume que el logo est en public/logo_transparente.png
 
   let timeSection = "";

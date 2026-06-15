@@ -115,7 +115,7 @@ export default function PedidosMonitorPage() {
             {p.estado}
           </span>
           <p className="text-[11px] text-billanga-gray mt-2 font-mono">
-            {new Date(p.created_at).toLocaleTimeString("es-ES", { hour: '2-digit', minute: '2-digit' })}
+            {new Date(p.created_at).toLocaleTimeString("es-ES", { timeZone: "America/La_Paz", hour: '2-digit', minute: '2-digit' })}
           </p>
         </div>
       </div>

@@ -835,7 +835,7 @@ export default function MesasPage() {
                       
                       <div className="flex items-center justify-center gap-1 text-[8px] sm:text-[10px] text-white/60 font-bold mb-0.5 bg-black/30 px-2 py-0.5 rounded-full">
                         <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        Inició: {new Date(sesion.inicio).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
+                        Inició: {new Date(sesion.inicio).toLocaleTimeString('es-BO', { timeZone: 'America/La_Paz', hour: '2-digit', minute: '2-digit' })}
                       </div>
 
                       <div className="text-white/50 text-[8px] sm:text-[9px] uppercase tracking-wider mb-0.5 truncate w-full">{tarifaNombre}</div>

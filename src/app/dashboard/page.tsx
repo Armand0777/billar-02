@@ -395,7 +395,7 @@ export default async function DashboardPage() {
                         </a>
                       </td>
                       <td className="py-3">
-                        {new Date(venta.created_at).toLocaleTimeString("es-BO", { hour: "2-digit", minute: "2-digit" })}
+                        {new Date(venta.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit" })}
                       </td>
                       <td className="py-3 text-billanga-gray">{venta.usuarios?.nombre || "Sistema"}</td>
                       <td className="py-3 capitalize text-xs">{venta.metodo_pago}</td>
