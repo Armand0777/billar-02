@@ -154,7 +154,7 @@ export default function NotificationBell() {
                             {n.titulo}
                           </h4>
                           <span className="text-[10px] text-billanga-gray whitespace-nowrap">
-                            {new Date(n.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: '2-digit', minute:'2-digit'})}
+                            {new Date(n.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: '2-digit', minute:'2-digit', hour12: false})}
                           </span>
                         </div>
                         <p className={`text-xs mt-1 line-clamp-2 ${!n.leida ? 'text-gray-300' : 'text-billanga-gray/70'}`}>

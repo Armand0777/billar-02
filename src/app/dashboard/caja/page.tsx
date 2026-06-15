@@ -453,7 +453,7 @@ export default function CajaPage() {
                 const isPositive = m.tipo === 'ingreso' || m.tipo === 'apertura';
                 return (
                   <tr key={m.id_mov_caja} className="border-b border-[#2a2a2c]/40 hover:bg-white/[0.02] transition-colors text-sm">
-                    <td className="py-3 pl-6 text-billanga-gray text-xs">{new Date(m.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit" })}</td>
+                    <td className="py-3 pl-6 text-billanga-gray text-xs">{new Date(m.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit", hour12: false })}</td>
                     <td className="py-3"><span className={`px-2.5 py-1 rounded-full text-[10px] font-bold uppercase ${isPositive ? "bg-green-500/10 text-green-500" : m.tipo === 'cierre' ? "bg-blue-500/10 text-blue-400" : "bg-red-500/10 text-red-400"}`}>{m.tipo}</span></td>
                     <td className={`py-3 text-right font-bold ${isPositive ? "text-green-400" : "text-red-400"}`}>{isPositive ? "+" : "-"} Bs. {Number(m.monto).toFixed(2)}</td>
                     <td className="py-3 pr-6 text-billanga-gray text-xs truncate max-w-[200px]">{m.descripcion || "—"}</td>

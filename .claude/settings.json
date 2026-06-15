@@ -1,0 +1,8 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git push *)",
+      "Bash(git commit -m 'fix: corregir lookup de roles y agregar dominio unsplash a next.config *)"
+    ]
+  }
+}

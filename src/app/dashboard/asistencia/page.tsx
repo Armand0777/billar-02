@@ -180,7 +180,7 @@ export default function AsistenciaPage() {
           <div className="space-y-2">
             <h3 className="text-lg text-billanga-gray capitalize">{hoyStr}</h3>
             <p className="text-4xl font-black text-white font-mono">
-              {new Date().toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit' })}
+              {new Date().toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit', hour12: false })}
             </p>
           </div>
 
@@ -190,7 +190,7 @@ export default function AsistenciaPage() {
                 <div className="bg-green-500/10 border border-green-500/30 text-green-400 p-4 rounded-xl flex flex-col items-center gap-2">
                   <CheckCircle2 className="w-8 h-8" />
                   <p className="font-bold">Turno Iniciado</p>
-                  <p className="text-xs text-green-400/80">Entraste a las {new Date(asistenciaActual.hora_entrada).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit' })}</p>
+                  <p className="text-xs text-green-400/80">Entraste a las {new Date(asistenciaActual.hora_entrada).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit', hour12: false })}</p>
                 </div>
                 
                 <button 
@@ -206,7 +206,7 @@ export default function AsistenciaPage() {
               <>
                 {asistenciaActual?.hora_salida && (
                   <div className="bg-blue-500/10 border border-blue-500/30 text-blue-400 p-4 rounded-xl text-sm mb-4">
-                    <p>Turno finalizado a las {new Date(asistenciaActual.hora_salida).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit' })}</p>
+                    <p>Turno finalizado a las {new Date(asistenciaActual.hora_salida).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit', hour12: false })}</p>
                     <p className="font-bold">{asistenciaActual.horas_trabajadas} horas registradas.</p>
                   </div>
                 )}
@@ -247,13 +247,13 @@ export default function AsistenciaPage() {
                       <p className="text-xs text-billanga-gray mt-1 flex items-center gap-2">
                         <span className="flex items-center gap-1 text-green-400">
                           <LogIn className="w-3 h-3" /> 
-                          {new Date(reg.hora_entrada).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit' })}
+                          {new Date(reg.hora_entrada).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit', hour12: false })}
                         </span>
                         <span>-</span>
                         {reg.hora_salida ? (
                           <span className="flex items-center gap-1 text-orange-400">
                             <LogOut className="w-3 h-3" /> 
-                            {new Date(reg.hora_salida).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit' })}
+                            {new Date(reg.hora_salida).toLocaleTimeString("es-BO", { timeZone: 'America/La_Paz', hour: '2-digit', minute:'2-digit', hour12: false })}
                           </span>
                         ) : (
                           <span className="text-billanga-gray/50 italic">En curso...</span>

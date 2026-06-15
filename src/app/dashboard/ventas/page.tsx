@@ -277,7 +277,7 @@ function VentasContent() {
                 const mesaInfo = Array.isArray(mesa) ? mesa[0] : mesa;
                 return (
                   <tr key={v.id_venta} className="border-b border-[#2a2a2c]/40 hover:bg-white/[0.02] transition-colors text-sm text-white">
-                    <td className="py-3 pl-6 text-xs"><div>{new Date(v.created_at).toLocaleDateString("es-BO", { timeZone: "America/La_Paz" })}</div><div className="text-billanga-gray">{new Date(v.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit" })}</div></td>
+                    <td className="py-3 pl-6 text-xs"><div>{new Date(v.created_at).toLocaleDateString("es-BO", { timeZone: "America/La_Paz" })}</div><div className="text-billanga-gray">{new Date(v.created_at).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit", hour12: false })}</div></td>
                     <td className="py-3">{mesaInfo ? `Mesa ${mesaInfo.numero}` : "—"}</td>
                     <td className="py-3 text-billanga-gray text-xs">{v.usuarios?.nombre || "—"}</td>
                     <td className="py-3 text-center"><span className="bg-[#2a2a2c] px-2 py-0.5 rounded-full text-xs font-bold">{v.venta_items?.length || 0}</span></td>
@@ -320,9 +320,11 @@ function VentasContent() {
                 const mesaInfo = sesion.mesas;
                 const tarifaInfo = sesion.tarifas;
                 
-                const horaInicioStr = new Date(sesion.inicio).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit" });
-                const horaFinStr = sesion.fin ? new Date(sesion.fin).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit" }) : "En curso";
-                const fechaSesionStr = new Date(sesion.inicio).toLocaleDateString("es-BO", { timeZone: "America/La_Paz" });
+                const inicioStr = sesion.inicio.endsWith('Z') || sesion.inicio.includes('+') ? sesion.inicio : sesion.inicio + 'Z';
+                const horaInicioStr = new Date(inicioStr).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit", hour12: false });
+                const finStr = sesion.fin ? (sesion.fin.endsWith('Z') || sesion.fin.includes('+') ? sesion.fin : sesion.fin + 'Z') : null;
+                const horaFinStr = finStr ? new Date(finStr).toLocaleTimeString("es-BO", { timeZone: "America/La_Paz", hour: "2-digit", minute: "2-digit", hour12: false }) : "En curso";
+                const fechaSesionStr = new Date(inicioStr).toLocaleDateString("es-BO", { timeZone: "America/La_Paz" });
                 
                 let modalidadTexto = "Abierto";
                 if (sesion.modalidad === "fijo") {
