@@ -67,13 +67,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
       }
     });
 
-    // refreshSession() pide un token nuevo al servidor (más confiable que getSession)
-    const doRefresh = async () => { await supabase.auth.refreshSession(); };
+    // Solo refresca cuando el tab vuelve a ser visible (pantalla desbloquea, tab activo)
+    // NO disparar al ir a segundo plano — evita race conditions con refresh token rotation
+    const doRefresh = async () => {
+      if (document.visibilityState === 'visible') {
+        await supabase.auth.refreshSession();
+      }
+    };
 
-    // Refresca cada 20 minutos (el JWT vive 1 hora, así nunca llega a expirar)
-    const keepAlive = setInterval(doRefresh, 20 * 60 * 1000);
+    // Refresca cada 20 minutos como respaldo
+    const keepAlive = setInterval(async () => {
+      await supabase.auth.refreshSession();
+    }, 20 * 60 * 1000);
 
-    // Refresca también cuando la pantalla se desbloquea o se vuelve al tab
     document.addEventListener('visibilitychange', doRefresh);
 
     return () => {
@@ -88,11 +94,14 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
 
     async function loadUserProfile() {
       try {
-        const { data: { user } } = await supabase.auth.getUser();
-        if (!user) {
+        // getSession() lee la sesión local sin requerir red — más robusto que getUser()
+        // Solo redirige si genuinamente no hay sesión (no por error de red)
+        const { data: { session } } = await supabase.auth.getSession();
+        if (!session?.user) {
           if (!cancelled) router.push("/login");
           return;
         }
+        const user = session.user;
 
         const { data: userData, error } = await supabase
           .from("usuarios")
