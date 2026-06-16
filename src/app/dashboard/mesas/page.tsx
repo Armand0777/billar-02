@@ -42,6 +42,7 @@ interface SesionMesa {
   id_tarifa: string;
   id_usuario: string;
   inicio: string;
+  created_at: string;
   estado: 'abierta' | 'cerrada' | 'cancelada';
   modalidad: 'abierto' | 'fijo' | 'partida';
   tiempo_fijo_minutos: number;
@@ -74,6 +75,13 @@ interface VentaItem {
 interface VentaPendiente {
   id_venta: string;
   items: VentaItem[];
+}
+
+function parseInicio(ts: string): Date {
+  const s = ts
+    .replace(' ', 'T')            // PostgreSQL space separator
+    .replace(/(\.\d{3})\d+/, '$1'); // microseconds → milliseconds
+  return new Date(s.endsWith('Z') || /[+-]\d{2}:?\d{2}$/.test(s) ? s : s + 'Z');
 }
 
 export default function MesasPage() {
@@ -218,7 +226,7 @@ export default function MesasPage() {
       // Sesiones Activas
       const { data: sesionesData } = await supabase
         .from("sesiones_mesa")
-        .select(`id_sesion, id_mesa, id_tarifa, id_usuario, inicio, estado, modalidad, tiempo_fijo_minutos, costo_partida`)
+        .select(`id_sesion, id_mesa, id_tarifa, id_usuario, inicio, created_at, estado, modalidad, tiempo_fijo_minutos, costo_partida`)
         .eq("estado", "abierta");
 
       const activeRecord: Record<string, SesionMesa> = {};
@@ -495,9 +503,9 @@ export default function MesasPage() {
     const isFijo = sesion.modalidad === 'fijo';
     const isPartida = sesion.modalidad === 'partida';
     
-    const inicioStr = sesion.inicio.endsWith('Z') || sesion.inicio.includes('+') ? sesion.inicio : sesion.inicio + 'Z';
-    const inicio = new Date(inicioStr);
-    const diffMs = currentTime.getTime() - inicio.getTime();
+    // created_at es la hora del servidor (confiable); inicio usa el reloj del cliente (puede estar desfasado)
+    const inicio = parseInicio(sesion.created_at || sesion.inicio);
+    const diffMs = Date.now() - inicio.getTime();
     const diffSecs = Math.max(0, Math.floor(diffMs / 1000));
     
     const tarifa = tarifas.find(t => t.id_tarifa === sesion.id_tarifa);
@@ -561,7 +569,7 @@ export default function MesasPage() {
       isTimeUp,
       precioHora,
       horasRegaloPromo,
-      horaInicio: inicio.toLocaleString("es-BO", { hour12: false })
+      horaInicio: parseInicio(sesion.created_at || sesion.inicio).toLocaleString("es-BO", { timeZone: 'America/La_Paz', hour12: true })
     };
   };
 
@@ -836,7 +844,7 @@ export default function MesasPage() {
                       
                       <div className="flex items-center justify-center gap-1 text-[8px] sm:text-[10px] text-white/60 font-bold mb-0.5 bg-black/30 px-2 py-0.5 rounded-full">
                         <Clock className="w-2.5 h-2.5 sm:w-3 sm:h-3" />
-                        Inició: {new Date(sesion.inicio + (sesion.inicio.endsWith('Z') || sesion.inicio.includes('+') ? '' : 'Z')).toLocaleTimeString('es-BO', { timeZone: 'America/La_Paz', hour: '2-digit', minute: '2-digit', hour12: false })}
+                        Inició: {parseInicio(sesion.created_at || sesion.inicio).toLocaleTimeString('es-BO', { timeZone: 'America/La_Paz', hour: '2-digit', minute: '2-digit', hour12: true })}
                       </div>
 
                       <div className="text-white/50 text-[8px] sm:text-[9px] uppercase tracking-wider mb-0.5 truncate w-full">{tarifaNombre}</div>

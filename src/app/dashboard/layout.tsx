@@ -58,6 +58,27 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
     }
   }, []);
 
+  // Mantiene la sesión viva mientras el usuario esté en el dashboard
+  useEffect(() => {
+    // Escucha SIGNED_OUT (cierre manual o por seguridad) y redirige al login
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') {
+        sessionStorage.removeItem(PROFILE_CACHE_KEY);
+        router.push('/login');
+      }
+    });
+
+    // Renueva el token proactivamente cada 30 minutos (el JWT expira en 1 hora por defecto)
+    const keepAlive = setInterval(async () => {
+      await supabase.auth.getSession();
+    }, 30 * 60 * 1000);
+
+    return () => {
+      subscription.unsubscribe();
+      clearInterval(keepAlive);
+    };
+  }, []);
+
   useEffect(() => {
     let cancelled = false;
 
