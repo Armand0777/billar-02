@@ -93,16 +93,17 @@ export function printReceipt(data: ReceiptData) {
       <meta charset="UTF-8">
       <title>Ticket de Venta</title>
       <style>
-        @page { margin: 0; size: auto; }
+        /* margen izquierdo extra: compensa la zona no imprimible de la ticketera que corta la primera letra */
+        @page { margin: 0 0 0 4mm; size: 58mm auto; }
         body {
           font-family: 'Courier New', Courier, monospace;
           font-weight: bold;
           margin: 0;
           padding: 0;
-          width: 58mm; /* Ancho estándar de ticketera pequeña */
+          width: 52mm; /* un poco menos que 58mm para no perder el lado derecho */
           color: #000;
         }
-        .ticket { width: 100%; max-width: 58mm; margin: 0 auto; padding: 4px 6px; box-sizing: border-box; }
+        .ticket { width: 100%; max-width: 52mm; margin: 0 auto; padding: 4px 4px; box-sizing: border-box; }
         .header { text-align: center; margin-bottom: 6px; }
         .header img { max-width: 60px; margin-bottom: 5px; }
         .header h1 { font-size: 15px; margin: 0; padding: 0; font-weight: bold; text-transform: uppercase; }
